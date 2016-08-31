@@ -1,0 +1,171 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+ALL_BINARY	comm/example/Makefile	/^ALL_BINARY = test_cm_cfg test_cm_log test_cm_shm test_cm_debug \\$/;"	m
+ANF_EPOLL	async_base.c	11;"	d	file:
+ANF_FLAG_ERROR	async_base.h	30;"	d
+ANF_FLAG_READ	async_base.h	28;"	d
+ANF_FLAG_WRITE	async_base.h	29;"	d
+ARGS	Makefile	/^ARGS = -g -Wall -fno-strict-aliasing$/;"	m
+ARGS	comm/example/Makefile	/^ARGS = -g -Wall -fno-strict-aliasing #-Qunused-arguments$/;"	m
+ARGS	comm/src/Makefile	/^ARGS = -g -Wall -fno-strict-aliasing$/;"	m
+AddBuffer	comm/src/cm_binary.c	/^int AddBuffer(char **p, int *piLen, const char *pBuf, CM_INT32 iBufLen)$/;"	f
+AddBufferNoLen	comm/src/cm_binary.c	/^int AddBufferNoLen(char **p, int *piLen, const char *pBuf, CM_INT32 iBufLen)$/;"	f
+AddChar	comm/src/cm_binary.c	/^int AddChar(char **p, int *piLen, char cValue)$/;"	f
+AddDWord	comm/src/cm_binary.c	/^int AddDWord(char **p, int *piLen, unsigned CM_INT32 lValue)$/;"	f
+AddQWord	comm/src/cm_binary.c	/^int AddQWord(char **p, int *piLen, uint64_t qwValue)$/;"	f
+AddWord	comm/src/cm_binary.c	/^int AddWord(char **p, int *piLen, unsigned short shValue)$/;"	f
+AnfAddFd	async_base.c	/^int AnfAddFd(AnfMng *pstAnfMng, int iFd, int iFlag)$/;"	f
+AnfGetEpollEv	async_base.c	/^static inline void AnfGetEpollEv(AnfMng *pstAnfMng, struct epoll_event *pev, int *piFd, int *piFlag)$/;"	f	file:
+AnfGetKqueueEv	async_base.c	/^static inline void AnfGetKqueueEv(AnfMng *pstAnfMng, int *piFd, int *piFlag)$/;"	f	file:
+AnfGetSeletFds	async_base.c	/^static inline void AnfGetSeletFds(AnfMng *pstAnfMng, int iFd, int iFlag)$/;"	f	file:
+AnfInit	async_base.c	/^AnfMng *AnfInit(LogFile *pstLog, int iLogLevel, int iMaxSocketNum)$/;"	f
+AnfMng	async_base.h	/^typedef struct _AnfMng AnfMng;$/;"	t	typeref:struct:_AnfMng
+AnfSetEpollEv	async_base.c	/^static inline void AnfSetEpollEv(AnfMng *pstAnfMng, struct epoll_event *pev, int iFd, int iFlag)$/;"	f	file:
+AnfSetKqueueEv	async_base.c	/^static inline void AnfSetKqueueEv(AnfMng *pstAnfMng, int iFd, int iFlag)$/;"	f	file:
+AnfSetSeletFds	async_base.c	/^static inline void AnfSetSeletFds(AnfMng *pstAnfMng, int iFd, int iFlag)$/;"	f	file:
+BUF_LEN	comm/example/test_cm_binary.c	7;"	d	file:
+CC	Makefile	/^CC = g++$/;"	m
+CC	comm/example/Makefile	/^CC = g++$/;"	m
+CC	comm/src/Makefile	/^CC = g++$/;"	m
+CFG_DOUBLE	comm/src/cm_cfg.h	13;"	d
+CFG_INT	comm/src/cm_cfg.h	11;"	d
+CFG_LONG	comm/src/cm_cfg.h	12;"	d
+CFG_STRING	comm/src/cm_cfg.h	10;"	d
+CM_INT32	comm/src/cm_type.h	11;"	d
+CM_INT32	comm/src/cm_type.h	7;"	d
+COMM_DIR	Makefile	/^COMM_DIR = .\/comm\/src\/$/;"	m
+COMM_DIR	comm/example/Makefile	/^COMM_DIR = ..\/src$/;"	m
+COMM_LIB	Makefile	/^COMM_LIB = $(COMM_DIR)\/cm_lib.a -I$(COMM_DIR) $/;"	m
+COMM_LIB	comm/example/Makefile	/^COMM_LIB = $(COMM_DIR)\/cm_lib.a -I$(COMM_DIR) $/;"	m
+CPPSRC	Makefile	/^CPPSRC=$(shell ls *.cpp)$/;"	m
+CPPSRC	comm/example/Makefile	/^CPPSRC=$(shell ls *.cpp)$/;"	m
+CPPSRC	comm/src/Makefile	/^CPPSRC=$(shell ls *.cpp)$/;"	m
+CSRC	Makefile	/^CSRC=$(shell ls *.c)$/;"	m
+CSRC	comm/example/Makefile	/^CSRC=$(shell ls *.c)$/;"	m
+CSRC	comm/src/Makefile	/^CSRC=$(shell ls *.c)$/;"	m
+Comm_GetConfig	comm/src/cm_cfg.c	/^int Comm_GetConfig(char * sConfigFileFullPath, ...)$/;"	f
+CreateSocket	comm/src/cm_net.c	/^int CreateSocket(const char *sSockType, int *pListener, const char *sListenIp, const char *sPort)$/;"	f
+CreateSocketRaw	comm/src/cm_net.c	/^int CreateSocketRaw(int iSockType, int *pListener, uint32_t dwListenIp, int iPort)$/;"	f
+CreateTcpSocket	comm/src/cm_net.c	/^int CreateTcpSocket(int *pListener, const char *sListenIp, const char *sPort)$/;"	f
+CreateUdpSocket	comm/src/cm_net.c	/^int CreateUdpSocket(int *pListener, const char *sListenIp, const char *sPort)$/;"	f
+DEBUG	Makefile	/^DEBUG= -g$/;"	m
+DEBUG	comm/example/Makefile	/^DEBUG=-g$/;"	m
+DEBUG	comm/src/Makefile	/^DEBUG= -g$/;"	m
+DEFAULT_CONF_FILE	comm/example/test_cm_cfg.c	6;"	d	file:
+DaemonInit	comm/src/cm_process.c	/^void DaemonInit()$/;"	f
+DateTimeToStr	comm/src/cm_time.c	/^char *DateTimeToStr(const time_t tTime)$/;"	f
+DelShm	comm/src/cm_shm.c	/^int DelShm(int iKey)$/;"	f
+DumpHex	comm/src/cm_debug.c	/^const char * DumpHex(const void *pMem, int iLen)$/;"	f
+DumpPackage	comm/src/cm_debug.c	/^const char * DumpPackage(const void *pPkg, int iPkgLen)$/;"	f
+EPOLLERR	async_base.h	36;"	d
+EPOLLHUP	async_base.h	35;"	d
+EPOLLIN	async_base.h	33;"	d
+EPOLLOUT	async_base.h	34;"	d
+ERR_MSG_LEN	comm/src/cm_shm.c	12;"	d	file:
+FILE_SUFFIX_LEN	comm/src/cm_log.c	13;"	d	file:
+GenPrimeArray	comm/src/cm_math.c	/^int GenPrimeArray(int iMax, int iNum, int array[])$/;"	f
+GetBuffer	comm/src/cm_binary.c	/^int GetBuffer(char **p, int *piLen, char *pBuf, unsigned CM_INT32 *piBufLen)$/;"	f
+GetBufferNoLen	comm/src/cm_binary.c	/^int GetBufferNoLen(char **p, int *piLen, char *pBuf, CM_INT32 iBufLen)$/;"	f
+GetBufferPtr	comm/src/cm_binary.c	/^int GetBufferPtr(char **p, int *piLen, char **pBufPtr, CM_INT32 *piBufLen)$/;"	f
+GetChar	comm/src/cm_binary.c	/^int GetChar(char **p, int *piLen, char *cValue)$/;"	f
+GetDWord	comm/src/cm_binary.c	/^int GetDWord(char **p, int *piLen, unsigned CM_INT32 *plValue)$/;"	f
+GetIpByName	comm/src/cm_net.c	/^int GetIpByName(const char *sInterfaceName, uint32_t *pIp)$/;"	f
+GetQWord	comm/src/cm_binary.c	/^int GetQWord(char **p, int *piLen, uint64_t *pqwValue)$/;"	f
+GetReadOnlyShm	comm/src/cm_shm.c	/^void * GetReadOnlyShm(int iKey)$/;"	f
+GetShm	comm/src/cm_shm.c	/^void * GetShm(int iKey, int iSize, int iFlag)$/;"	f
+GetShmEx	comm/src/cm_shm.c	/^int GetShmEx(void **pShm, int iKey, int iSize, int iFlag)$/;"	f
+GetShmFrocely	comm/src/cm_shm.c	/^int GetShmFrocely(void **pstShm, int iKey, int iSize)$/;"	f
+GetShmSize	comm/src/cm_shm.c	/^int GetShmSize(int iKey) $/;"	f
+GetWord	comm/src/cm_binary.c	/^int GetWord(char **p, int *piLen, unsigned short *pshValue)$/;"	f
+InitLogFile	comm/src/cm_log.c	/^int InitLogFile(LogFile * pstLogFile, const char *sBaseFileName, int iShiftType, int iMaxLogNum, CM_INT32 lMaxSize)$/;"	f
+IsInnerIp	comm/src/cm_net.c	/^int IsInnerIp(in_addr_t dwIp)$/;"	f
+IsPrime	comm/src/cm_math.c	/^int IsPrime(int iNum)$/;"	f
+LOCK_FILE_NAME_LEN	comm/src/cm_shm.c	148;"	d	file:
+LOG	async_base.c	24;"	d	file:
+LOG_FORMAT_TYPE_NOTIME	comm/src/cm_log.h	38;"	d
+LOG_FORMAT_TYPE_TIME	comm/src/cm_log.h	39;"	d
+LOG_SHIFT_BY_COUNT	comm/src/cm_log.h	36;"	d
+LOG_SHIFT_BY_SIZE	comm/src/cm_log.h	35;"	d
+Log	comm/src/cm_log.c	/^int Log(LogFile *pstLogFile, int iLogFormat, const char *sFormat, ...)$/;"	f
+LogFile	comm/src/cm_log.h	/^} LogFile;$/;"	t	typeref:struct:__anon1
+MAX_BUFFER_LEN	comm/src/cm_binary.c	234;"	d	file:
+MAX_CONFIG_LEN	comm/src/cm_cfg.c	7;"	d	file:
+MAX_LISTENING_NUM	comm/src/cm_net.c	51;"	d	file:
+MAX_LOG_FILE_NAME_LEN	comm/src/cm_log.h	13;"	d
+OBJS	Makefile	/^OBJS=$(CSRC:.c=.o) $/;"	m
+OBJS	comm/example/Makefile	/^OBJS=$(CSRC:.c=.o) $/;"	m
+OBJS	comm/src/Makefile	/^OBJS=$(CSRC:.c=.o) $/;"	m
+PERSION_ARRAY_SIZE	comm/example/test_cm_shm.c	11;"	d	file:
+PKG_LEN	comm/src/cm_debug.c	4;"	d	file:
+Person	comm/example/test_cm_shm.c	/^struct Person {$/;"	s	file:
+SHM_ID	comm/example/test_cm_shm.c	9;"	d	file:
+STRING_BUFFER_LEN	comm/src/cm_time.c	7;"	d	file:
+ShiftFiles	comm/src/cm_log.c	/^static int ShiftFiles(LogFile *pstLogFile)$/;"	f	file:
+WritePid	comm/src/cm_process.c	/^int WritePid(const char *sPidFilePath)$/;"	f
+_ASYNC_BASE_H_	async_base.h	2;"	d
+_AnfMng	async_base.c	/^struct _AnfMng$/;"	s	file:
+_CM_BINARY_H_	comm/src/cm_binary.h	2;"	d
+_CM_CFG_H_	comm/src/cm_cfg.h	2;"	d
+_CM_DEBUG_H_	comm/src/cm_debug.h	2;"	d
+_CM_LOG_H_	comm/src/cm_log.h	2;"	d
+_CM_MATH_H_	comm/src/cm_math.h	2;"	d
+_CM_NET_H_	comm/src/cm_net.h	2;"	d
+_CM_PROCESS_H_	comm/src/cm_process.h	2;"	d
+_CM_SHM_H_	comm/src/cm_shm.h	2;"	d
+_CM_TIME_H_	comm/src/cm_time.h	2;"	d
+_CM_TYPE_H_	comm/src/cm_type.h	2;"	d
+_EPOLL_H_	epoll.h	2;"	d
+_GetNameAndVal	comm/src/cm_cfg.c	/^static int _GetNameAndVal(char * sLine, char * sName, char * sVal)$/;"	f	file:
+_GetShmAndForcely	comm/src/cm_shm.c	/^static int _GetShmAndForcely(void **pstShm, int iKey, int iSize)$/;"	f	file:
+_InitDefault	comm/src/cm_cfg.c	/^static void _InitDefault(va_list ap)$/;"	f	file:
+_SetVal	comm/src/cm_cfg.c	/^static int _SetVal(va_list ap, char *sCfgName, char *sCfgVal)$/;"	f	file:
+_get_name	comm/src/cm_cfg.c	/^static int _get_name(char * desc, char * src)$/;"	f	file:
+atoaddr	comm/src/cm_net.c	/^struct in_addr *atoaddr(const char *sAddress)$/;"	f
+atoport	comm/src/cm_net.c	/^int atoport(const char *sService, const char *sProto)$/;"	f
+data	epoll.h	/^	epoll_data_t data;    \/* User data variable *\/$/;"	m	struct:epoll_event
+epoll_data	epoll.h	/^typedef union epoll_data$/;"	u
+epoll_data_t	epoll.h	/^} epoll_data_t;$/;"	t	typeref:union:epoll_data
+epoll_event	epoll.h	/^struct epoll_event$/;"	s
+events	epoll.h	/^	uint32_t events;  \/* Epoll events *\/$/;"	m	struct:epoll_event
+evs	async_base.c	/^	struct epoll_event *evs;$/;"	m	struct:_AnfMng	typeref:struct:_AnfMng::epoll_event	file:
+fd	epoll.h	/^	int fd;$/;"	m	union:epoll_data
+g_astPersons	comm/example/test_cm_shm.c	/^struct Person g_astPersons[PERSION_ARRAY_SIZE];$/;"	v	typeref:struct:Person
+hton64	comm/src/cm_binary.h	/^static inline uint64_t hton64(uint64_t qwVal)$/;"	f
+iAge	comm/example/test_cm_shm.c	/^	int iAge;$/;"	m	struct:Person	file:
+iEpollFd	async_base.c	/^	int iEpollFd;$/;"	m	struct:_AnfMng	file:
+iIsTriggered	async_base.c	/^	int iIsTriggered;$/;"	m	struct:_AnfMng	file:
+iLogLevel	async_base.c	/^	int iLogLevel;$/;"	m	struct:_AnfMng	file:
+iMaxLogNum	comm/src/cm_log.h	/^	int iMaxLogNum;$/;"	m	struct:__anon1
+iMaxSocketNum	async_base.c	/^	int iMaxSocketNum;$/;"	m	struct:_AnfMng	file:
+iSex	comm/example/test_cm_shm.c	/^	int iSex;$/;"	m	struct:Person	file:
+iShiftType	comm/src/cm_log.h	/^	int iShiftType;$/;"	m	struct:__anon1
+lLastShiftTime	comm/src/cm_log.h	/^	CM_INT32 lLastShiftTime;$/;"	m	struct:__anon1
+lLogLineCount	comm/src/cm_log.h	/^	CM_INT32 lLogLineCount;$/;"	m	struct:__anon1
+lMaxCount	comm/src/cm_log.h	/^	CM_INT32 lMaxCount;$/;"	m	struct:__anon1
+lMaxFileSize	comm/src/cm_log.h	/^	CM_INT32 lMaxFileSize;$/;"	m	struct:__anon1
+lMaxLineCount	comm/src/cm_log.h	/^	CM_INT32 lMaxLineCount;$/;"	m	struct:__anon1
+main	comm/example/test_cm_binary.c	/^int main()$/;"	f
+main	comm/example/test_cm_cfg.c	/^int main(int argc, char * argv[])$/;"	f
+main	comm/example/test_cm_debug.c	/^int main()$/;"	f
+main	comm/example/test_cm_log.c	/^int main(int argc, char * argv[])$/;"	f
+main	comm/example/test_cm_net.c	/^int main()$/;"	f
+main	comm/example/test_cm_process.c	/^int main()$/;"	f
+main	comm/example/test_cm_shm.c	/^int main(int argc, char * argv[])$/;"	f
+ntoh64	comm/src/cm_binary.h	43;"	d
+pLogFile	comm/src/cm_log.h	/^	FILE *pLogFile;$/;"	m	struct:__anon1
+pstLog	async_base.c	/^	LogFile *pstLog;$/;"	m	struct:_AnfMng	file:
+ptr	epoll.h	/^	void *ptr;$/;"	m	union:epoll_data
+sBaseFileName	comm/src/cm_log.h	/^	char sBaseFileName[MAX_LOG_FILE_NAME_LEN];$/;"	m	struct:__anon1
+sLogFileName	comm/src/cm_log.h	/^	char sLogFileName[MAX_LOG_FILE_NAME_LEN];$/;"	m	struct:__anon1
+stExceptFds	async_base.c	/^	fd_set stExceptFds;$/;"	m	struct:_AnfMng	file:
+stExceptTmpFds	async_base.c	/^	fd_set stExceptTmpFds;$/;"	m	struct:_AnfMng	file:
+stReadFds	async_base.c	/^	fd_set stReadFds;$/;"	m	struct:_AnfMng	file:
+stReadTmpFds	async_base.c	/^	fd_set stReadTmpFds;$/;"	m	struct:_AnfMng	file:
+stWriteFds	async_base.c	/^	fd_set stWriteFds;$/;"	m	struct:_AnfMng	file:
+stWriteTmpFds	async_base.c	/^	fd_set stWriteTmpFds;$/;"	m	struct:_AnfMng	file:
+u32	epoll.h	/^	uint32_t u32;$/;"	m	union:epoll_data
+u64	epoll.h	/^	uint64_t u64;$/;"	m	union:epoll_data
