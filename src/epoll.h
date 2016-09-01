@@ -23,6 +23,10 @@ struct epoll_event
 
 #define EPOLL_CTL_ADD 0x1
 #define EPOLL_CTL_MOD 0x2
+#define EPOLL_CTL_DEL 0x4
+
+int epoll_ctl(int, int, int, struct epoll_event *);
+int epoll_wait(int ,struct epoll_event *, int, int);
 
 #ifdef __cplusplus
 }

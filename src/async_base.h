@@ -37,7 +37,12 @@ typedef struct _AnfMng AnfMng;
 
 AnfMng *AnfInit(LogFile *pstLog, int iLogLevel, int iMaxSocketNum);
 
-int epoll_ctl(int, int, int, struct epoll_event *);
+int AnfAddFd(AnfMng *pstAnfMng, int iFd, int iFlag);
+int AnfDelFd(AnfMng *pstAnfMng, int iFd);
+int AnfModFd(AnfMng *pstAnfMng, int iFd, int iFlag);
+
+int AnfWaitForFd(AnfMng *pstAnfMng, int iTimeoutMSec);
+int AnfGetReadyFd(AnfMng *pstAnfMng, int *piPos, int *piFlag);
 
 #ifdef __cplusplus
 }

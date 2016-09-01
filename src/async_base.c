@@ -177,20 +177,20 @@ static inline void AnfSetSeletFds(AnfMng *pstAnfMng, int iFd, int iFlag)
 	LOG("fd %d iFlag %d", iFd, iFlag);
 }
 
-static inline void AnfGetSeletFds(AnfMng *pstAnfMng, int iFd, int iFlag)
+static inline void AnfGetSelectFds(AnfMng *pstAnfMng, int iFd, int *piFlag)
 {
 
 	if (FD_ISSET(iFd, &(pstAnfMng->stReadTmpFds))) {
-		iFlag |= ANF_FLAG_READ;
+		*piFlag |= ANF_FLAG_READ;
 	}
 
 	if (FD_ISSET(iFd, &(pstAnfMng->stWriteTmpFds))) {
-		iFlag |= ANF_FLAG_WRITE;
+		*piFlag |= ANF_FLAG_WRITE;
 	}
 	if (FD_ISSET(iFd, &(pstAnfMng->stExceptTmpFds))) {
-		iFlag |= ANF_FLAG_ERROR;
+		*piFlag |= ANF_FLAG_ERROR;
 	}
-	LOG("fd %d flag %d", iFd, iFlag);
+	LOG("fd %d flag %d", iFd, *piFlag);
 }
 
 #elif defined(ANF_KQUEUE)
@@ -219,16 +219,154 @@ int AnfAddFd(AnfMng *pstAnfMng, int iFd, int iFlag)
 
 	if (epoll_ctl(pstAnfMng->iEpollFd, EPOLL_CTL_ADD, iFd, &ev) < 0) {
 		if (errno != EEXIST || epoll_ctl(pstAnfMng->iEpollFd, EPOLL_CTL_MOD, iFd, &ev) < 0) {
-			LOG("epoll_ctl failed");
+			LOG("epoll_ctl EPOLL_CTL_MOD failed");
 			return -2;
 		} else {
 			LOG("warning: epoll_ctr add failed but mod success");
 		}
 	}
 
-#elif define(ANF_SELECT)
+#elif defined(ANF_SELECT)
 	AnfSetSeletFds(pstAnfMng, iFd, iFlag);
+#elif defined(ANF_KQUEUE)
+
 #endif
 
 	return 0;
+}
+
+int AnfModFd(AnfMng *pstAnfMng, int iFd, int iFlag)
+{
+	if (iFd <= 0)
+		return -1;
+
+#if defined(ANF_EPOLL)
+	struct epoll_event ev;
+
+	AnfSetEpollEv(pstAnfMng, &ev, iFd, iFlag);
+
+	if (epoll_ctl(pstAnfMng->iEpollFd, EPOLL_CTL_MOD, iFd, &ev) < 0) {
+		if (errno != ENOENT || epoll_ctl(pstAnfMng->iEpollFd, EPOLL_CTL_ADD, iFd, &ev) < 0) {
+			LOG("epoll_ctl EPOLL_CTL_MOD failed");
+			return -2;
+		} else {
+			LOG("warning: epoll_ctr mod failed but mod success");
+		}
+	}
+
+#elif defined(ANF_SELECT)
+	AnfSetSeletFds(pstAnfMng, iFd, iFlag);
+#elif defined(ANF_KQUEUE)
+
+#endif
+
+	return 0;
+}
+
+
+int AnfDelFd(AnfMng *pstAnfMng, int iFd)
+{
+	if (iFd <= 0)
+		return -1;
+
+#if defined(ANF_EPOLL)
+	struct epoll_event ev;
+
+	if (epoll_ctl(pstAnfMng->iEpollFd, EPOLL_CTL_DEL, iFd, &ev) < 0) {
+		if (errno != ENOENT) {
+			LOG("epoll_ctl EPOLL_CTL_DEL failed");
+			return -2;
+		} else {
+			LOG("warning: epoll_ctr del failed");
+		}
+	}
+
+#elif defined(ANF_SELECT)
+	AnfSetSeletFds(pstAnfMng, iFd, 0);
+#elif defined(ANF_KQUEUE)
+
+#endif
+
+	return 0;
+}
+
+int AnfWaitForFd(AnfMng *pstAnfMng, int iTimeoutMSec)
+{
+	int iIsTriggered = 0;
+#if defined(ANF_EPOLL)
+	if (iTimeoutMSec < 0) {
+		iTimeoutMSec = -1;
+	}
+	iIsTriggered = epoll_wait(pstAnfMng->iEpollFd, pstAnfMng->evs, pstAnfMng->iMaxSocketNum, iTimeoutMSec);
+#elif defined(ANF_SELECT)
+	struct timeval tv, *ptv = &tv;
+	tv.tv_sec = iTimeoutMSec / 1000;
+	tv.tv_usec = iTimeoutMSec % 1000 * 1000;
+
+	//return immediately
+	if (iTimeoutMSec < 0)
+		ptv = NULL;
+
+	pstAnfMng->stReadTmpFds = pstAnfMng->stWriteFds;
+	pstAnfMng->stWriteTmpFds = pstAnfMng->stWriteFds;
+	pstAnfMng->stExceptTmpFds = pstAnfMng->stExceptFds;
+
+	iIsTriggered = select(pstAnfMng->iMaxSocketNum, 
+			&(pstAnfMng->stReadTmpFds), 
+			&(pstAnfMng->stWriteTmpFds), 
+			&(pstAnfMng->stExceptTmpFds), ptv);
+#elif defined(ANF_KQUEUE)
+
+#endif
+	if (iIsTriggered < 0) {
+		if (errno != EAGAIN && errno != EINTR) {
+			LOG("epoll_wait erro errno != EAGAIN && errno != EINT");
+		}
+		return -2;
+	}
+
+	pstAnfMng->iIsTriggered = iIsTriggered;
+
+	return 0;
+}
+
+
+//the first call iPos should be 0
+//return fd
+int AnfGetReadyFd(AnfMng *pstAnfMng, int *piPos, int *piFlag)
+{
+	if (*piPos < 0)
+		return -1;
+
+#if defined(ANF_EPOLL)
+	int iFd;
+
+	if (*piPos >= pstAnfMng->iIsTriggered) {
+		LOG("GetReady over");
+		return -2;
+	}
+
+	AnfGetEpollEv(pstAnfMng, pstAnfMng->evs + *piPos, &iFd, piFlag);
+	if (!(*piFlag)) {
+		LOG("BUG! even occur but no Flag");
+		return -4;
+	}
+
+	(*piPos)++;
+	return iFd;
+#elif defined(ANF_SELECT)
+	while (*piPos < pstAnfMng->iMaxSocketNum) {
+		AnfGetSelectFds(pstAnfMng, *piPos, piFlag);
+
+		if (*piFlag)
+			return ((*piPos)++);
+
+		(*piPos)++;
+
+		return -8;
+	}
+#elif defined(ANF_KQUEUE)
+
+	return -1;
+#endif
 }
