@@ -40,11 +40,11 @@ typedef struct {
 typedef struct {
 	char sServerIp[20];
 	int iServerPort;
-	int iTcpClientName;
+	int iTcpClientId;
 } ClientDef;
 
 typedef struct {
-	int iClientDefNum;
+	int iClientNum;
 	int aiSocket[MAX_CLTDEF];
 	ClientDef astClientDef[MAX_CLTDEF];
 	SocketStat aStat[MAX_CLTDEF];
@@ -77,8 +77,14 @@ typedef struct {
 	int (*HandleUdpPkg) (SocketClientDef *pstScd, void *pUserInfo, int iUdpName, void *pPkg, int iPkgLen);
 	int (*HandleClose) (SocketClientDef *pstScd, void *pUserInfo, char *sErrInfo);
 	
-} SrvCallBack:
+} SrvCallBack;
 
+
+typedef struct {
+	char sIp[20];
+	int iPort;
+	int iName;
+}ListenEntry;
 
 #ifdef __cplusplus
 extern "C" {

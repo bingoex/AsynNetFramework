@@ -1,3 +1,0 @@
-[submodule "src/comm"]
-	path = src/comm
-	url = git@github.com:bingoex/comm.git

@@ -5,7 +5,7 @@
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.8	//
 ALL_BINARY	comm/example/Makefile	/^ALL_BINARY = test_cm_cfg test_cm_log test_cm_shm test_cm_debug \\$/;"	m
-ANF_EPOLL	async_base.c	11;"	d	file:
+ANF_EPOLL	async_base.c	12;"	d	file:
 ANF_FLAG_ERROR	async_base.h	30;"	d
 ANF_FLAG_READ	async_base.h	28;"	d
 ANF_FLAG_WRITE	async_base.h	29;"	d
@@ -19,14 +19,19 @@ AddDWord	comm/src/cm_binary.c	/^int AddDWord(char **p, int *piLen, unsigned CM_I
 AddQWord	comm/src/cm_binary.c	/^int AddQWord(char **p, int *piLen, uint64_t qwValue)$/;"	f
 AddWord	comm/src/cm_binary.c	/^int AddWord(char **p, int *piLen, unsigned short shValue)$/;"	f
 AnfAddFd	async_base.c	/^int AnfAddFd(AnfMng *pstAnfMng, int iFd, int iFlag)$/;"	f
+AnfDelFd	async_base.c	/^int AnfDelFd(AnfMng *pstAnfMng, int iFd)$/;"	f
 AnfGetEpollEv	async_base.c	/^static inline void AnfGetEpollEv(AnfMng *pstAnfMng, struct epoll_event *pev, int *piFd, int *piFlag)$/;"	f	file:
 AnfGetKqueueEv	async_base.c	/^static inline void AnfGetKqueueEv(AnfMng *pstAnfMng, int *piFd, int *piFlag)$/;"	f	file:
-AnfGetSeletFds	async_base.c	/^static inline void AnfGetSeletFds(AnfMng *pstAnfMng, int iFd, int iFlag)$/;"	f	file:
+AnfGetReadyFd	async_base.c	/^int AnfGetReadyFd(AnfMng *pstAnfMng, int *piPos, int *piFlag)$/;"	f
+AnfGetSelectFds	async_base.c	/^static inline void AnfGetSelectFds(AnfMng *pstAnfMng, int iFd, int *piFlag)$/;"	f	file:
 AnfInit	async_base.c	/^AnfMng *AnfInit(LogFile *pstLog, int iLogLevel, int iMaxSocketNum)$/;"	f
 AnfMng	async_base.h	/^typedef struct _AnfMng AnfMng;$/;"	t	typeref:struct:_AnfMng
+AnfModFd	async_base.c	/^int AnfModFd(AnfMng *pstAnfMng, int iFd, int iFlag)$/;"	f
 AnfSetEpollEv	async_base.c	/^static inline void AnfSetEpollEv(AnfMng *pstAnfMng, struct epoll_event *pev, int iFd, int iFlag)$/;"	f	file:
 AnfSetKqueueEv	async_base.c	/^static inline void AnfSetKqueueEv(AnfMng *pstAnfMng, int iFd, int iFlag)$/;"	f	file:
 AnfSetSeletFds	async_base.c	/^static inline void AnfSetSeletFds(AnfMng *pstAnfMng, int iFd, int iFlag)$/;"	f	file:
+AnfWaitForFd	async_base.c	/^int AnfWaitForFd(AnfMng *pstAnfMng, int iTimeoutMSec)$/;"	f
+AsyncNetFrameworkInit	async_net_framework.c	/^int AsyncNetFrameworkInit (void *pUserInfoBuf, int iUserInfoBufLen, int iUserInfoLen,$/;"	f
 BUF_LEN	comm/example/test_cm_binary.c	7;"	d	file:
 CC	Makefile	/^CC = g++$/;"	m
 CC	comm/example/Makefile	/^CC = g++$/;"	m
@@ -47,6 +52,8 @@ CPPSRC	comm/src/Makefile	/^CPPSRC=$(shell ls *.cpp)$/;"	m
 CSRC	Makefile	/^CSRC=$(shell ls *.c)$/;"	m
 CSRC	comm/example/Makefile	/^CSRC=$(shell ls *.c)$/;"	m
 CSRC	comm/src/Makefile	/^CSRC=$(shell ls *.c)$/;"	m
+ClientDef	async_net_framework.h	/^} ClientDef;$/;"	t	typeref:struct:__anon4
+ClientDefMng	async_net_framework.h	/^} ClientDefMng;$/;"	t	typeref:struct:__anon5
 Comm_GetConfig	comm/src/cm_cfg.c	/^int Comm_GetConfig(char * sConfigFileFullPath, ...)$/;"	f
 CreateSocket	comm/src/cm_net.c	/^int CreateSocket(const char *sSockType, int *pListener, const char *sListenIp, const char *sPort)$/;"	f
 CreateSocketRaw	comm/src/cm_net.c	/^int CreateSocketRaw(int iSockType, int *pListener, uint32_t dwListenIp, int iPort)$/;"	f
@@ -65,6 +72,9 @@ EPOLLERR	async_base.h	36;"	d
 EPOLLHUP	async_base.h	35;"	d
 EPOLLIN	async_base.h	33;"	d
 EPOLLOUT	async_base.h	34;"	d
+EPOLL_CTL_ADD	epoll.h	24;"	d
+EPOLL_CTL_DEL	epoll.h	26;"	d
+EPOLL_CTL_MOD	epoll.h	25;"	d
 ERR_MSG_LEN	comm/src/cm_shm.c	12;"	d	file:
 FILE_SUFFIX_LEN	comm/src/cm_log.c	13;"	d	file:
 GenPrimeArray	comm/src/cm_math.c	/^int GenPrimeArray(int iMax, int iNum, int array[])$/;"	f
@@ -81,32 +91,74 @@ GetShmEx	comm/src/cm_shm.c	/^int GetShmEx(void **pShm, int iKey, int iSize, int 
 GetShmFrocely	comm/src/cm_shm.c	/^int GetShmFrocely(void **pstShm, int iKey, int iSize)$/;"	f
 GetShmSize	comm/src/cm_shm.c	/^int GetShmSize(int iKey) $/;"	f
 GetWord	comm/src/cm_binary.c	/^int GetWord(char **p, int *piLen, unsigned short *pshValue)$/;"	f
+HandleAccept	async_net_framework.h	/^	int (*HandleAccept) (SocketClientDef *pstScd, void *pUserInfo);$/;"	m	struct:__anon7
+HandleAcceptDefault	async_net_framework.c	/^static int HandleAcceptDefault(SocketClientDef *pstScd, void *pUserInfo)$/;"	f	file:
+HandleClose	async_net_framework.h	/^	int (*HandleClose) (SocketClientDef *pstScd, void *pUserInfo, char *sErrInfo);$/;"	m	struct:__anon7
+HandleCloseDefault	async_net_framework.c	/^static int HandleCloseDefault(SocketClientDef *pstScd, void *pUserInfo, char *sErrInfo)$/;"	f	file:
+HandleConnect	async_net_framework.h	/^	int (*HandleConnect) (SocketClientDef *pstScd, void *pUserInfo);$/;"	m	struct:__anon7
+HandleConnectDefault	async_net_framework.c	/^static int HandleConnectDefault(SocketClientDef *pstScd, void *pUserInfo)$/;"	f	file:
+HandleLoop	async_net_framework.h	/^	int (*HandleLoop) ();$/;"	m	struct:__anon7
+HandleLoopDefault	async_net_framework.c	/^static int HandleLoopDefault()$/;"	f	file:
+HandlePkg	async_net_framework.h	/^	int (*HandlePkg) (SocketClientDef *pstScd, void *pUserInfo, void *pPkg, int iPkgLen);$/;"	m	struct:__anon7
+HandlePkgDefault	async_net_framework.c	/^static int HandlePkgDefault(SocketClientDef *pstScd, void *pUserInfo, void *pPkg, int iPkgLen)$/;"	f	file:
+HandlePkgHead	async_net_framework.h	/^	int (*HandlePkgHead) (SocketClientDef *pstScd, void *pUserInfo, void *pPkg, int iBytesRecved, int *piPkgLen);$/;"	m	struct:__anon7
+HandlePkgHeadDefault	async_net_framework.c	/^static int HandlePkgHeadDefault(SocketClientDef *pstScd, void *pUserInfo, void *pPkg, int iBytesRecved, int *piPkgLen)$/;"	f	file:
+HandleUdpPkg	async_net_framework.h	/^	int (*HandleUdpPkg) (SocketClientDef *pstScd, void *pUserInfo, int iUdpName, void *pPkg, int iPkgLen);$/;"	m	struct:__anon7
+HandleUdpPkgDefault	async_net_framework.c	/^static int HandleUdpPkgDefault(SocketClientDef *pstScd, void *pUserInfo, int iUdpName, void *pPkg, int iPkgLen)$/;"	f	file:
 InitLogFile	comm/src/cm_log.c	/^int InitLogFile(LogFile * pstLogFile, const char *sBaseFileName, int iShiftType, int iMaxLogNum, CM_INT32 lMaxSize)$/;"	f
 IsInnerIp	comm/src/cm_net.c	/^int IsInnerIp(in_addr_t dwIp)$/;"	f
 IsPrime	comm/src/cm_math.c	/^int IsPrime(int iNum)$/;"	f
 LOCK_FILE_NAME_LEN	comm/src/cm_shm.c	148;"	d	file:
-LOG	async_base.c	24;"	d	file:
+LOG	async_base.c	25;"	d	file:
+LOG	async_net_framework.c	46;"	d	file:
 LOG_FORMAT_TYPE_NOTIME	comm/src/cm_log.h	38;"	d
 LOG_FORMAT_TYPE_TIME	comm/src/cm_log.h	39;"	d
 LOG_SHIFT_BY_COUNT	comm/src/cm_log.h	36;"	d
 LOG_SHIFT_BY_SIZE	comm/src/cm_log.h	35;"	d
+ListenEntry	async_net_framework.h	/^}ListenEntry;$/;"	t	typeref:struct:__anon8
 Log	comm/src/cm_log.c	/^int Log(LogFile *pstLogFile, int iLogFormat, const char *sFormat, ...)$/;"	f
-LogFile	comm/src/cm_log.h	/^} LogFile;$/;"	t	typeref:struct:__anon1
+LogFile	comm/src/cm_log.h	/^} LogFile;$/;"	t	typeref:struct:__anon9
 MAX_BUFFER_LEN	comm/src/cm_binary.c	234;"	d	file:
+MAX_CLTDEF	async_net_framework.h	16;"	d
 MAX_CONFIG_LEN	comm/src/cm_cfg.c	7;"	d	file:
 MAX_LISTENING_NUM	comm/src/cm_net.c	51;"	d	file:
 MAX_LOG_FILE_NAME_LEN	comm/src/cm_log.h	13;"	d
+MAX_TCP_PORT	async_net_framework.c	4;"	d	file:
+MAX_UDP_PORT	async_net_framework.c	5;"	d	file:
 OBJS	Makefile	/^OBJS=$(CSRC:.c=.o) $/;"	m
 OBJS	comm/example/Makefile	/^OBJS=$(CSRC:.c=.o) $/;"	m
 OBJS	comm/src/Makefile	/^OBJS=$(CSRC:.c=.o) $/;"	m
 PERSION_ARRAY_SIZE	comm/example/test_cm_shm.c	11;"	d	file:
 PKG_LEN	comm/src/cm_debug.c	4;"	d	file:
 Person	comm/example/test_cm_shm.c	/^struct Person {$/;"	s	file:
+RECVBUF_LEN	async_net_framework.h	11;"	d
+RECVBUF_LEN	async_net_framework.h	8;"	d
+RecvBuf	async_net_framework.h	/^	char RecvBuf[RECVBUF_LEN];$/;"	m	struct:__anon6
+SENDBUF_LEN	async_net_framework.h	12;"	d
+SENDBUF_LEN	async_net_framework.h	9;"	d
+SET_CALLBACK	async_net_framework.c	109;"	d	file:
+SET_CALLBACK	async_net_framework.c	132;"	d	file:
 SHM_ID	comm/example/test_cm_shm.c	9;"	d	file:
+SOCKET_TCP_ACCEPT	async_net_framework.h	/^	SOCKET_TCP_ACCEPT,$/;"	e	enum:__anon2
+SOCKET_TCP_CONNECTING	async_net_framework.h	/^	SOCKET_TCP_CONNECTING,$/;"	e	enum:__anon2
+SOCKET_TCP_LISTEN	async_net_framework.h	/^	SOCKET_TCP_LISTEN,$/;"	e	enum:__anon2
+SOCKET_TCP_RECONNECT_WAIT	async_net_framework.h	/^	SOCKET_TCP_RECONNECT_WAIT,$/;"	e	enum:__anon2
+SOCKET_UDP	async_net_framework.h	/^	SOCKET_UDP$/;"	e	enum:__anon2
+SOCKET_UNUSED	async_net_framework.h	/^	SOCKET_UNUSED,$/;"	e	enum:__anon2
 STRING_BUFFER_LEN	comm/src/cm_time.c	7;"	d	file:
+SendBuf	async_net_framework.h	/^	char SendBuf[SENDBUF_LEN];$/;"	m	struct:__anon6
+SetCallBack	async_net_framework.c	/^static int SetCallBack(SrvCallBack *pstDst, SrvCallBack *pstSrc)$/;"	f	file:
 ShiftFiles	comm/src/cm_log.c	/^static int ShiftFiles(LogFile *pstLogFile)$/;"	f	file:
+SocketClientDef	async_net_framework.h	/^} SocketClientDef;$/;"	t	typeref:struct:__anon3
+SocketContext	async_net_framework.h	/^} SocketContext;$/;"	t	typeref:struct:__anon6
+SocketStat	async_net_framework.h	/^} SocketStat;$/;"	t	typeref:enum:__anon2
+SrvCallBack	async_net_framework.h	/^} SrvCallBack;$/;"	t	typeref:struct:__anon7
+SrvConfig	async_net_framework.c	/^} SrvConfig;$/;"	t	typeref:struct:__anon1	file:
+TIMEOUT_CONNECT	async_net_framework.h	18;"	d
+TIME_RECONNECT	async_net_framework.h	20;"	d
 WritePid	comm/src/cm_process.c	/^int WritePid(const char *sPidFilePath)$/;"	f
 _ASYNC_BASE_H_	async_base.h	2;"	d
+_ASYNC_NET_FRAMEWORK_H_	async_net_framework.h	2;"	d
 _AnfMng	async_base.c	/^struct _AnfMng$/;"	s	file:
 _CM_BINARY_H_	comm/src/cm_binary.h	2;"	d
 _CM_CFG_H_	comm/src/cm_cfg.h	2;"	d
@@ -124,6 +176,12 @@ _GetShmAndForcely	comm/src/cm_shm.c	/^static int _GetShmAndForcely(void **pstShm
 _InitDefault	comm/src/cm_cfg.c	/^static void _InitDefault(va_list ap)$/;"	f	file:
 _SetVal	comm/src/cm_cfg.c	/^static int _SetVal(va_list ap, char *sCfgName, char *sCfgVal)$/;"	f	file:
 _get_name	comm/src/cm_cfg.c	/^static int _get_name(char * desc, char * src)$/;"	f	file:
+aStat	async_net_framework.h	/^	SocketStat aStat[MAX_CLTDEF];$/;"	m	struct:__anon5
+aUserInfo	async_net_framework.c	/^	void *aUserInfo; \/\/TODO$/;"	m	struct:__anon1	file:
+aiSocket	async_net_framework.h	/^	int aiSocket[MAX_CLTDEF];$/;"	m	struct:__anon5
+aiUdpSocket	async_net_framework.c	/^	int aiUdpSocket[MAX_UDP_PORT];$/;"	m	struct:__anon1	file:
+astClientDef	async_net_framework.h	/^	ClientDef astClientDef[MAX_CLTDEF];$/;"	m	struct:__anon5
+astSocketContext	async_net_framework.c	/^	SocketContext *astSocketContext;$/;"	m	struct:__anon1	file:
 atoaddr	comm/src/cm_net.c	/^struct in_addr *atoaddr(const char *sAddress)$/;"	f
 atoport	comm/src/cm_net.c	/^int atoport(const char *sService, const char *sProto)$/;"	f
 data	epoll.h	/^	epoll_data_t data;    \/* User data variable *\/$/;"	m	struct:epoll_event
@@ -136,18 +194,38 @@ fd	epoll.h	/^	int fd;$/;"	m	union:epoll_data
 g_astPersons	comm/example/test_cm_shm.c	/^struct Person g_astPersons[PERSION_ARRAY_SIZE];$/;"	v	typeref:struct:Person
 hton64	comm/src/cm_binary.h	/^static inline uint64_t hton64(uint64_t qwVal)$/;"	f
 iAge	comm/example/test_cm_shm.c	/^	int iAge;$/;"	m	struct:Person	file:
+iBytesRecved	async_net_framework.h	/^	int iBytesRecved;$/;"	m	struct:__anon6
+iBytesSend	async_net_framework.h	/^	int iBytesSend;$/;"	m	struct:__anon6
+iClientDefNum	async_net_framework.h	/^	int iClientDefNum;$/;"	m	struct:__anon5
+iClientIndex	async_net_framework.h	/^	int iClientIndex;$/;"	m	struct:__anon6
+iCurAcceptSocketNum	async_net_framework.c	/^	int iCurAcceptSocketNum;$/;"	m	struct:__anon1	file:
 iEpollFd	async_base.c	/^	int iEpollFd;$/;"	m	struct:_AnfMng	file:
 iIsTriggered	async_base.c	/^	int iIsTriggered;$/;"	m	struct:_AnfMng	file:
 iLogLevel	async_base.c	/^	int iLogLevel;$/;"	m	struct:_AnfMng	file:
-iMaxLogNum	comm/src/cm_log.h	/^	int iMaxLogNum;$/;"	m	struct:__anon1
+iLogLevel	async_net_framework.c	/^	int iLogLevel;$/;"	m	struct:__anon1	file:
+iMaxAcceptSocketNum	async_net_framework.c	/^	int iMaxAcceptSocketNum; \/\/just for accept$/;"	m	struct:__anon1	file:
+iMaxFdNum	async_net_framework.c	/^	int iMaxFdNum; \/\/ iTotalTcpNum + 64$/;"	m	struct:__anon1	file:
+iMaxLogNum	comm/src/cm_log.h	/^	int iMaxLogNum;$/;"	m	struct:__anon9
 iMaxSocketNum	async_base.c	/^	int iMaxSocketNum;$/;"	m	struct:_AnfMng	file:
+iName	async_net_framework.h	/^	int iName;$/;"	m	struct:__anon8
+iPkgHeadLenAsClt	async_net_framework.c	/^	int iPkgHeadLenAsClt;$/;"	m	struct:__anon1	file:
+iPkgHeadLenAsSrv	async_net_framework.c	/^	int iPkgHeadLenAsSrv;$/;"	m	struct:__anon1	file:
+iPkgLen	async_net_framework.h	/^	int iPkgLen;$/;"	m	struct:__anon6
+iPort	async_net_framework.h	/^	int iPort;$/;"	m	struct:__anon8
+iServerPort	async_net_framework.h	/^	int iServerPort;$/;"	m	struct:__anon4
 iSex	comm/example/test_cm_shm.c	/^	int iSex;$/;"	m	struct:Person	file:
-iShiftType	comm/src/cm_log.h	/^	int iShiftType;$/;"	m	struct:__anon1
-lLastShiftTime	comm/src/cm_log.h	/^	CM_INT32 lLastShiftTime;$/;"	m	struct:__anon1
-lLogLineCount	comm/src/cm_log.h	/^	CM_INT32 lLogLineCount;$/;"	m	struct:__anon1
-lMaxCount	comm/src/cm_log.h	/^	CM_INT32 lMaxCount;$/;"	m	struct:__anon1
-lMaxFileSize	comm/src/cm_log.h	/^	CM_INT32 lMaxFileSize;$/;"	m	struct:__anon1
-lMaxLineCount	comm/src/cm_log.h	/^	CM_INT32 lMaxLineCount;$/;"	m	struct:__anon1
+iShiftType	comm/src/cm_log.h	/^	int iShiftType;$/;"	m	struct:__anon9
+iSocket	async_net_framework.h	/^	const int iSocket;$/;"	m	struct:__anon3
+iSocket	async_net_framework.h	/^	const int iSocket;$/;"	m	struct:__anon6
+iTcpClientName	async_net_framework.h	/^	int iTcpClientName;$/;"	m	struct:__anon4
+iTimeoutMSec	async_net_framework.c	/^	int iTimeoutMSec; \/\/ms $/;"	m	struct:__anon1	file:
+iTotalTcpNum	async_net_framework.c	/^	int iTotalTcpNum; \/\/ iMaxAcceptSocketNum + stCltMng.iClientDefNum$/;"	m	struct:__anon1	file:
+iUserInfoLen	async_net_framework.c	/^	int iUserInfoLen; \/\/TODO$/;"	m	struct:__anon1	file:
+lLastShiftTime	comm/src/cm_log.h	/^	CM_INT32 lLastShiftTime;$/;"	m	struct:__anon9
+lLogLineCount	comm/src/cm_log.h	/^	CM_INT32 lLogLineCount;$/;"	m	struct:__anon9
+lMaxCount	comm/src/cm_log.h	/^	CM_INT32 lMaxCount;$/;"	m	struct:__anon9
+lMaxFileSize	comm/src/cm_log.h	/^	CM_INT32 lMaxFileSize;$/;"	m	struct:__anon9
+lMaxLineCount	comm/src/cm_log.h	/^	CM_INT32 lMaxLineCount;$/;"	m	struct:__anon9
 main	comm/example/test_cm_binary.c	/^int main()$/;"	f
 main	comm/example/test_cm_cfg.c	/^int main(int argc, char * argv[])$/;"	f
 main	comm/example/test_cm_debug.c	/^int main()$/;"	f
@@ -156,16 +234,35 @@ main	comm/example/test_cm_net.c	/^int main()$/;"	f
 main	comm/example/test_cm_process.c	/^int main()$/;"	f
 main	comm/example/test_cm_shm.c	/^int main(int argc, char * argv[])$/;"	f
 ntoh64	comm/src/cm_binary.h	43;"	d
-pLogFile	comm/src/cm_log.h	/^	FILE *pLogFile;$/;"	m	struct:__anon1
+pLogFile	comm/src/cm_log.h	/^	FILE *pLogFile;$/;"	m	struct:__anon9
+pstAnfMng	async_net_framework.c	/^	AnfMng *pstAnfMng;$/;"	m	struct:__anon1	file:
 pstLog	async_base.c	/^	LogFile *pstLog;$/;"	m	struct:_AnfMng	file:
+pstLog	async_net_framework.c	/^	LogFile *pstLog;$/;"	m	struct:__anon1	file:
+pstSrvConfig	async_net_framework.c	/^SrvConfig *pstSrvConfig = &stSrvConfig;$/;"	v
 ptr	epoll.h	/^	void *ptr;$/;"	m	union:epoll_data
-sBaseFileName	comm/src/cm_log.h	/^	char sBaseFileName[MAX_LOG_FILE_NAME_LEN];$/;"	m	struct:__anon1
-sLogFileName	comm/src/cm_log.h	/^	char sLogFileName[MAX_LOG_FILE_NAME_LEN];$/;"	m	struct:__anon1
+sBaseFileName	comm/src/cm_log.h	/^	char sBaseFileName[MAX_LOG_FILE_NAME_LEN];$/;"	m	struct:__anon9
+sIp	async_net_framework.h	/^	char sIp[20];$/;"	m	struct:__anon8
+sLogFileName	comm/src/cm_log.h	/^	char sLogFileName[MAX_LOG_FILE_NAME_LEN];$/;"	m	struct:__anon9
+sServerIp	async_net_framework.h	/^	char sServerIp[20];$/;"	m	struct:__anon4
+stCallBack	async_net_framework.c	/^	SrvCallBack stCallBack;$/;"	m	struct:__anon1	file:
+stClientAddr	async_net_framework.h	/^	const struct sockaddr_in stClientAddr;$/;"	m	struct:__anon3	typeref:struct:__anon3::sockaddr_in
+stClientAddr	async_net_framework.h	/^	const struct sockaddr_in stClientAddr;$/;"	m	struct:__anon6	typeref:struct:__anon6::sockaddr_in
+stCltMng	async_net_framework.c	/^	ClientDefMng stCltMng;$/;"	m	struct:__anon1	file:
 stExceptFds	async_base.c	/^	fd_set stExceptFds;$/;"	m	struct:_AnfMng	file:
 stExceptTmpFds	async_base.c	/^	fd_set stExceptTmpFds;$/;"	m	struct:_AnfMng	file:
 stReadFds	async_base.c	/^	fd_set stReadFds;$/;"	m	struct:_AnfMng	file:
 stReadTmpFds	async_base.c	/^	fd_set stReadTmpFds;$/;"	m	struct:_AnfMng	file:
+stSrvConfig	async_net_framework.c	/^static SrvConfig stSrvConfig;$/;"	v	file:
+stTcpListenEntrys	async_net_framework.c	/^	ListenEntry stTcpListenEntrys[MAX_TCP_PORT];$/;"	m	struct:__anon1	file:
+stUdpListenEntrys	async_net_framework.c	/^	ListenEntry stUdpListenEntrys[MAX_UDP_PORT];$/;"	m	struct:__anon1	file:
 stWriteFds	async_base.c	/^	fd_set stWriteFds;$/;"	m	struct:_AnfMng	file:
 stWriteTmpFds	async_base.c	/^	fd_set stWriteTmpFds;$/;"	m	struct:_AnfMng	file:
+stat	async_net_framework.h	/^	const SocketStat stat;$/;"	m	struct:__anon3
+stat	async_net_framework.h	/^	const SocketStat stat;$/;"	m	struct:__anon6
+tCreateTime	async_net_framework.h	/^	const time_t tCreateTime;$/;"	m	struct:__anon3
+tCreateTime	async_net_framework.h	/^	const time_t tCreateTime;$/;"	m	struct:__anon6
+tLastAccessTime	async_net_framework.h	/^	const time_t tLastAccessTime;$/;"	m	struct:__anon3
+tLastAccessTime	async_net_framework.h	/^	const time_t tLastAccessTime;$/;"	m	struct:__anon6
+tLastConnectTime	async_net_framework.h	/^	time_t tLastConnectTime[MAX_CLTDEF];$/;"	m	struct:__anon5
 u32	epoll.h	/^	uint32_t u32;$/;"	m	union:epoll_data
 u64	epoll.h	/^	uint64_t u64;$/;"	m	union:epoll_data
