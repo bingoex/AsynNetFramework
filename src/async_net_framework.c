@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <memory.h>
+#include <errno.h>
 #include "async_net_framework.h"
 
 #define MAX_TCP_PORT 10
@@ -92,7 +93,7 @@ static int HandleUdpPkgDefault(SocketClientDef *pstScd, void *pUserInfo, int iUd
 	return 0;
 }
 
-static int HandleCloseDefault(SocketClientDef *pstScd, void *pUserInfo, char *sErrInfo)
+static int HandleCloseDefault(SocketClientDef *pstScd, void *pUserInfo)
 {
 	LOG("HandleCloseDefault");
 	return 0;
@@ -100,7 +101,7 @@ static int HandleCloseDefault(SocketClientDef *pstScd, void *pUserInfo, char *sE
 
 static void SetCallBack(SrvCallBack *pstDst, SrvCallBack *pstSrc)
 {
-	static SrvCallBack stDefaultCallBack;/* = {
+	static SrvCallBack stDefaultCallBack = {
 		HandlePkgHead:HandlePkgHeadDefault,
 		HandlePkg:HandlePkgDefault,
 		HandleAccept:HandleAcceptDefault,
@@ -108,7 +109,7 @@ static void SetCallBack(SrvCallBack *pstDst, SrvCallBack *pstSrc)
 		HandleLoop:HandleLoopDefault,
 		HandleUdpPkg:HandleUdpPkgDefault,
 		HandleClose:HandleCloseDefault
-	};*/
+	};
 
 #define SET_CALLBACK(x) \
 	do { \
@@ -336,33 +337,364 @@ int InitClientSocket()
 	return 0;
 }
 
-int ProcessClose(SocketContext*pContext, void *pUserInfo)
+int ProcessClose(SocketContext *pContext, void *pUserInfo)
 {
+	SrvCallBack *pstCallback = &(pstSrvConfig->stCallBack);
+	int iRet = 0;
+
+	if (pContext == NULL) {
+		LOG("pContext == NULL");
+		return -51;
+	}
+
+	if (pContext->iSocket != pstSrvConfig->stCltMng.aiSocket[pContext->iClientIndex]) {
+		LOG("BUG pContext->iSocket(%d) != stCltMng.iSocke(%d)", 
+				pContext->iSocket, pstSrvConfig->stCltMng.aiSocket[pContext->iClientIndex]);
+		return -53;
+	}
+
+	if (pContext->stat == SOCKET_UNUSED
+			|| (pContext->stat != SOCKET_TCP_ACCEPT &&
+				pContext->stat != SOCKET_TCP_CONNECTING &&
+				pContext->stat != SOCKET_TCP_CONNECTED)){
+		LOG("BUG error stat %d", pContext->stat);
+		return -55;
+	}
+
+	pstCallback->HandleClose((SocketClientDef *)pContext, pUserInfo);
+
+	if (pContext->stat == SOCKET_TCP_CONNECTED || pContext->stat == SOCKET_TCP_CONNECTING) {
+		LOG("change cltMng astat to SOCKET_TCP_RECONNECT_WAIT");
+		pstSrvConfig->stCltMng.aStat[pContext->iClientIndex] = SOCKET_TCP_RECONNECT_WAIT;
+	}
+
+	if (pContext->stat == SOCKET_TCP_ACCEPT) {
+		pstSrvConfig->iCurAcceptSocketNum--;
+		LOG("CurAcceptSocketNum-- -> %d", pstSrvConfig->iCurAcceptSocketNum);
+	}
+
+	pContext->stat = SOCKET_UNUSED;
+
+	if ((iRet = AnfDelFd(pstSrvConfig->pstAnfMng, pContext->iSocket)) < 0) {
+		LOG("AnfDelFd failed iRet %d iSocket %d", iRet, pContext->iSocket);
+		close(pContext->iSocket);
+		return -57;
+	}
+
+	if (close(pContext->iSocket)) {
+		perror("ProcessClose close failed");
+		return -59;
+	}
+
 	return 0;
 }
 
-int ProcessAccept(SocketContext*pContext, void *pUserInfo)
+int ProcessAccept(SocketContext *pContext, void *pUserInfo)
 {
+	SrvCallBack *pstCallback = &(pstSrvConfig->stCallBack);
+	int iRet = 0, iSocket = 0;
+	static struct sockaddr_in stAddr;
+	int iLen = sizeof(stAddr);
+	SocketContext *pNewContext = NULL;
+	void *pNewUserInfo = NULL;
+
+	if (pContext == NULL) {
+		LOG("pContext == NULL");
+		return -51;
+	}
+
+	if (pContext->stat != SOCKET_TCP_LISTEN) {
+		LOG("ProcessAccept error stat %d", pContext->stat);
+		return -61;
+	}
+
+	if (pstSrvConfig->iCurAcceptSocketNum >= pstSrvConfig->iMaxAcceptSocketNum) {
+		LOG("iCurAcceptSocketNum >= iMaxAcceptSocketNum(%d)", pstSrvConfig->iMaxAcceptSocketNum);
+		return -63;
+	}
+	
+	iSocket = accept(pContext->iSocket, (struct sockaddr *)&stAddr, (socklen_t *)&iLen);
+	if (iSocket == -1) {
+		if (errno == EAGAIN || errno == EINTR)
+			return 0; //ok
+		perror("accept error");
+		return -64;
+	}
+
+	if (iSocket > pstSrvConfig->iMaxFdNum) {
+		LOG("isocket(%d) > iMaxFdNum(%d)", iSocket, pstSrvConfig->iMaxFdNum);
+		return -65;
+	}
+
+	SetNBLock(iSocket);
+
+	pNewContext = &((pstSrvConfig->astSocketContext)[iSocket]);
+	pNewUserInfo = (char *)pstSrvConfig->aUserInfo + iSocket * pstSrvConfig->iUserInfoLen;
+
+	pNewContext->stat = SOCKET_TCP_ACCEPT;
+	pNewContext->iSocket = iSocket;
+	memcpy(&(pNewContext->stClientAddr), &stAddr, sizeof(stAddr));
+	pNewContext->iBytesRecved = 0;
+	pNewContext->iBytesSend = 0;
+	pNewContext->iPkgLen = 0;
+	pNewContext->tLastAccessTime = pNewContext->tCreateTime = time(NULL);
+
+	if ((iRet = AnfAddFd(pstSrvConfig->pstAnfMng, iSocket, ANF_FLAG_READ | ANF_FLAG_ERROR)) < 0) {
+		LOG("AnfAddFd failed iRet %d iSocket %d", iRet, iSocket);
+		ProcessClose(pNewContext, pNewUserInfo);
+		return -67;
+	}
+
+	if ((iRet = pstCallback->HandleAccept((SocketClientDef *)pNewContext, pNewUserInfo)) < 0) {
+		LOG("HandleAccept failed iRet %d iSocket %d", iRet, iSocket);
+		ProcessClose(pNewContext, pNewUserInfo);
+		return -59;
+	}
+
+	pstSrvConfig->iCurAcceptSocketNum++;
+
 	return 0;
 }
 
-int ProcessTcpRead(SocketContext*pContext, void *pUserInfo)
+int ProcessTcpRead(SocketContext *pContext, void *pUserInfo)
 {
+	SrvCallBack *pstCallback = &(pstSrvConfig->stCallBack);
+	int iRet = 0, iSocket = 0;
+	int iReqLen = 0;
+	int iPkgLen = 0;
+
+	if (pContext == NULL) {
+		LOG("pContext == NULL");
+		return -61;
+	}
+
+	if (pContext->stat != SOCKET_TCP_ACCEPT &&
+			pContext->stat != SOCKET_TCP_CONNECTED) {
+		LOG("ProcessTcpRead error stat(%d)", pContext->stat);
+		return -62;
+	}
+
+	iRet = recv(pContext->iSocket, pContext->RecvBuf + pContext->iBytesRecved, 
+			sizeof(pContext->RecvBuf) - pContext->iBytesRecved, 0);
+	if (iRet < 0) {
+		LOG("recv error ret %d errno %d", iRet, errno);
+		ProcessClose(pContext, pUserInfo);
+		return -63;
+	}
+
+	if (iRet == 0 && pContext->iBytesSend == 0) {
+		LOG("iRet == 0 && pContext->iBytesSend == 0");
+		ProcessClose(pContext, pUserInfo);
+		return -63;
+	}
+
+	LOG("recv iSocket %d iBytesRecved %d newRecv %d total %d", iSocket,
+			pContext->iBytesRecved, iRet, sizeof(pContext->RecvBuf));
+
+	pContext->iBytesRecved += iRet;
+	
+	do {
+		//try to call HandlePkgHead one time
+		if (pContext->iPkgLen == 0) {
+			if (pContext->stat == SOCKET_TCP_ACCEPT)
+				iReqLen = pstSrvConfig->iPkgHeadLenAsSrv;
+			else 
+				iReqLen = pstSrvConfig->iPkgHeadLenAsClt;
+
+			if (pContext->iBytesRecved < iReqLen) {
+				LOG("pContext->iBytesRecved(%d) < iReqLen(%d) stat(%d)",
+						pContext->iBytesRecved, iReqLen, pContext->stat);
+			}
+
+			//try to get iPkgLen
+			iRet = pstCallback->HandlePkgHead((SocketClientDef *)pContext, pUserInfo, 
+					pContext->RecvBuf, pContext->iBytesRecved, &pContext->iPkgLen);
+			if (iRet < 0){
+				LOG("HandlePkgHead failed iRet %d", iRet);
+				ProcessClose(pContext, pUserInfo);
+				return -65;
+			}
+		}
+
+		iPkgLen = pContext->iPkgLen;
+
+		if (iPkgLen > sizeof(pContext->RecvBuf)) {
+			LOG("NO Way!! iPkgLen(%d) > RecvBuf(%d)", iPkgLen, pContext->iPkgLen);
+			ProcessClose(pContext, pUserInfo);
+			return -66;
+		}
+
+		//not enough continnue recv
+		if (pContext->iBytesRecved < iPkgLen) {
+			LOG("iBytesRecved(%d) < iPkgLen(%d) continue", pContext->iBytesRecved, iPkgLen);
+			break;
+		}
+
+		iRet = pstCallback->HandlePkg((SocketClientDef *)pContext, pUserInfo, pContext->RecvBuf, iPkgLen);
+		if (iRet < 0) {
+			LOG("HandlePkg failed iRet %d", iRet);
+			ProcessClose(pContext, pUserInfo);
+			return -67;
+		}
+
+		pContext->iPkgLen = 0;
+		pContext->iBytesRecved -= iPkgLen;
+
+		LOG("after processPkg(%d) iBytesRecved %d", iPkgLen,  pContext->iBytesRecved);
+
+		if (pContext->iBytesRecved == 0)
+			break;
+
+		if (pContext->iBytesSend < 0) {
+			LOG("BUG iBytesSend %d", pContext->iBytesSend);
+			return -69;
+		}
+
+		memmove(pContext->RecvBuf, pContext->RecvBuf + iPkgLen, pContext->iBytesSend);
+
+	} while (0);
+
 	return 0;
 }
 
-int ProcessUdpRead(SocketContext*pContext, void *pUserInfo)
+//TODO
+int ProcessUdpRead(SocketContext *pContext, void *pUserInfo)
 {
+	SrvCallBack *pstCallback = &(pstSrvConfig->stCallBack);
+	int iRet = 0;
+	int iAddrLen = sizeof(pContext->stClientAddr);
+
+	if (pContext == NULL) {
+		LOG("pContext == NULL");
+		return -71;
+	}
+
+	if (pContext->stat != SOCKET_UDP) {
+		LOG("ProcessUdpRead error stat(%d)", pContext->stat);
+		return -72;
+	}
+
+	iRet = recvfrom(pContext->iSocket, pContext->RecvBuf, sizeof(pContext->RecvBuf), 0, 
+			(struct sockaddr *)&(pContext->stClientAddr), (socklen_t *)&iAddrLen);
+	if (iRet <= 0) {
+		LOG("recvfrom failed %d", iRet);
+		return -75;
+	}
+
+	iRet = pstCallback->HandleUdpPkg((SocketClientDef *)pContext, pUserInfo, 0, pContext->RecvBuf, iRet);
+	if (iRet <= 0) {
+		LOG("HandleUdpPkg failed %d", iRet);
+		return -77;
+	}
+
+	return 0;
+}
+
+int ProcessTcpConnect(SocketContext*pContext, void *pUserInfo)
+{
+	SrvCallBack *pstCallback = &(pstSrvConfig->stCallBack);
+	int iRet = 0;
+	int iSockErr, iSockErrLen = sizeof(iSockErr);
+
+	if (pContext == NULL) {
+		LOG("pContext == NULL");
+		return -81;
+	}
+
+	if (getsockopt(pContext->iSocket, SOL_SOCKET, SO_ERROR, &iSockErr, (socklen_t *)&iSockErrLen)) {
+		perror("getsockopt failed");
+		return -83;
+	}
+
+	if (iSockErr) {
+		LOG("getsockopt iSockErr %d", iSockErr);
+		return -84;
+	}
+
+	pContext->stat = SOCKET_TCP_CONNECTED;
+	pContext->iBytesRecved = 0;
+	pContext->iBytesSend = 0;
+	pContext->iPkgLen = 0;
+	pContext->tLastAccessTime = pContext->tCreateTime = time(NULL);
+	pstSrvConfig->stCltMng.aStat[pContext->iClientIndex] = pContext->stat;
+
+	if ((iRet = AnfModFd(pstSrvConfig->pstAnfMng, pContext->iSocket, ANF_FLAG_READ | ANF_FLAG_ERROR)) < 0) {
+		LOG("AnfModFd failed %d", iRet);
+	}
+
+	iRet = pstCallback->HandleConnect((SocketClientDef *)pContext, pUserInfo);
+	if (iRet < 0) {
+		LOG("HandleConnect failed %d", iRet);
+		ProcessClose(pContext, pUserInfo);
+		return -85;
+	}
+
 	return 0;
 }
 
 int ProcessTcpWrite(SocketContext*pContext, void *pUserInfo)
 {
+	int iRet = 0;
+
+	if (pContext == NULL) {
+		LOG("pContext == NULL");
+		return -91;
+	}
+
+	if (pContext->stat == SOCKET_UNUSED 
+			|| (pContext->stat != SOCKET_TCP_LISTEN && 
+				pContext->stat != SOCKET_TCP_CONNECTED)) {
+		LOG("error stat %d", pContext->stat);
+		return -92;
+	}
+
+	pContext->tLastAccessTime = time(NULL);
+	iRet = send(pContext->iSocket, pContext->SendBuf, pContext->iBytesSend, 0);
+	if (iRet == 0) {
+		LOG("ret 0");
+		return 0;
+	}
+
+	if (iRet < 0) {
+		if (errno == EAGAIN || errno == EINTR) {
+			LOG("errno == EAGAIN || errno == EINT %d", errno);
+			return 0;
+		}
+		LOG("send failt errno %d", errno);
+		ProcessClose(pContext, pUserInfo);
+		return -93;
+	}
+
+	if (iRet >= pContext->iBytesSend) {
+		pContext->iBytesSend = 0;
+		LOG("send success iRet %d", iRet);
+		if ((iRet = AnfModFd(pstSrvConfig->pstAnfMng, pContext->iSocket, ANF_FLAG_READ | ANF_FLAG_ERROR)) < 0) {
+			LOG("AnfModFd failed %d",iRet);
+		}
+		return 0;
+	}
+
+	pContext->iBytesSend -= iRet;
+	memmove(pContext->SendBuf, pContext->SendBuf + iRet, pContext->iBytesSend);
+
+	LOG("send not finish continue iRet %d iBytesSend %d", iRet, pContext->iBytesSend);
+
 	return 0;
 }
 
 int ProcessUdpWrite(SocketContext*pContext, void *pUserInfo)
 {
+	/*
+	SrvCallBack *pstCallback = &(pstSrvConfig->stCallBack);
+	int iRet = 0, iSocket = 0;
+
+	if (pContext == NULL) {
+		LOG("pContext == NULL");
+		return -51;
+	}
+
+	LOG("ProcessUdpWrite don't imp");
+	*/
 	return 0;
 }
 
@@ -448,18 +780,15 @@ int AsyncNetFrameworkLoop()
 				}
 
 				if (pContext->stat == SOCKET_UDP) {
-
 					//TODO
 					ProcessUdpRead(pContext, pUserInfo);
 				}
 			}
 
 			if (iFlag & ANF_FLAG_WRITE) {
-				/*
 				if (pContext->stat == SOCKET_TCP_CONNECTING) {
-					ProcessTcpWrite(pContext, pUserInfo);
+					ProcessTcpConnect(pContext, pUserInfo);
 				}
-				*/
 
 				//TODO
 				if (pContext->stat == SOCKET_UDP) {
@@ -472,4 +801,140 @@ int AsyncNetFrameworkLoop()
 	}
 
 	return 0;
+}
+
+int SendTcpPkg(SocketClientDef *pstScd, void *pUserInfo, void *pPkg, int iPkgLen)
+{
+	int iRet = 0;
+	SocketContext *pContext = (SocketContext *)pstScd;
+
+	if (!pContext) {
+		LOG("SendTcpPkg failed pContext == NULL");
+		return -1;
+	}
+
+	if (pContext->stat == SOCKET_UNUSED 
+			|| (pContext->stat != SOCKET_TCP_LISTEN && 
+				pContext->stat != SOCKET_TCP_CONNECTED)) {
+		LOG("error stat %d", pContext->stat);
+		return -2;
+	}
+
+	if (pPkg == NULL || iPkgLen <= 0 || iPkgLen > sizeof(pContext->SendBuf)) {
+		LOG("Pkg error");
+		return -4;
+	}
+
+	pContext->tLastAccessTime = time(NULL);
+
+	//buf too much data so add to buf
+	if (pContext->iBytesSend > 0) {
+		if (pContext->iBytesSend + iPkgLen > sizeof(pContext->SendBuf)) {
+			LOG("iPkgLen too big");
+			ProcessClose(pContext, pUserInfo);
+			return -5;
+		}
+		memcpy(pContext->SendBuf + pContext->iBytesSend, pPkg, iPkgLen);
+		pContext->iBytesSend += iPkgLen;
+		return 0;
+	}
+
+	iRet = send(pContext->iSocket, pPkg, iPkgLen, 0);
+
+	LOG("send iRet %d iByteSend %d", iRet, pContext->iBytesSend);
+
+	//sent parttly
+	if (iRet > 0) {
+		if (iRet == iPkgLen) {
+			LOG("send ok exactly");
+			return 0;
+		}
+
+		memcpy(pContext->SendBuf, (char *)pPkg + iRet, iPkgLen - iRet);
+		pContext->iBytesSend = iPkgLen - iRet;
+		if (AnfModFd(pstSrvConfig->pstAnfMng, pContext->iSocket, 
+					ANF_FLAG_WRITE | ANF_FLAG_READ | ANF_FLAG_ERROR) < 0) {
+			ProcessClose(pContext, pUserInfo);
+			return -6;
+		}
+		
+		return 0;
+	}
+
+	//send nothing
+	if (iRet < 0 && (errno == EAGAIN || errno == EINTR)) {
+		memcpy(pContext->SendBuf, pPkg, iPkgLen);
+		pContext->iBytesSend = iPkgLen;
+		if (AnfModFd(pstSrvConfig->pstAnfMng, pContext->iSocket, 
+					ANF_FLAG_WRITE | ANF_FLAG_READ | ANF_FLAG_ERROR) < 0) {
+			ProcessClose(pContext, pUserInfo);
+			return -7;
+		}
+		
+		return 0;
+	}
+
+	LOG("send failed iRet %d errno %d", iRet, errno);
+
+	ProcessClose(pContext, pUserInfo);
+
+	return -9;
+}
+
+
+int SendUdpPkg(SocketClientDef *pstScd, const struct sockaddr_in *pstAddr, 
+		void *pUserInfo, void *pPkg, int iPkgLen)
+{
+	int iRet = 0;
+	SocketContext *pContext = (SocketContext *)pstScd;
+	int iSocket = 0, iAddrLen = sizeof(struct sockaddr_in);
+
+	if (!pContext) {
+		LOG("SendUdpPkg failed pContext == NULL");
+		return -1;
+	}
+
+	if (pContext->stat == SOCKET_UDP) {
+		LOG("error stat %d", pContext->stat);
+		return -2;
+	}
+
+	if (pPkg == NULL || iPkgLen <= 0 || iPkgLen > sizeof(pContext->SendBuf)) {
+		LOG("Pkg error");
+		return -4;
+	}
+
+	pContext->tLastAccessTime = time(NULL);
+
+	iRet = sendto(pContext->iSocket, pPkg, iPkgLen, 0, (const struct sockaddr *)pstAddr, iAddrLen);
+
+	if (iRet != iPkgLen) {
+		LOG("sento failed %d", iRet);
+		return -7;
+	}
+
+	LOG("sendto sucess ret %d", iRet);
+
+	return 0;
+}
+
+int GetContext(int iSocket, SocketClientDef **ppstScd, void **ppUserInfo)
+{
+	if (iSocket < 0 || iSocket >= pstSrvConfig->iMaxFdNum) {
+		LOG("GetContext error iSocket %d", iSocket);
+		return -1;
+	}
+
+	if (ppstScd)
+		*ppstScd = (SocketClientDef *)&((pstSrvConfig->astSocketContext)[iSocket]);
+
+	if (ppUserInfo)
+		*ppUserInfo = (char *)pstSrvConfig->aUserInfo + iSocket * pstSrvConfig->iUserInfoLen;
+
+	return 0;
+}
+
+void SetWaitTimeout(int iTimeoutMSec)
+{
+	pstSrvConfig->iTimeoutMSec = iTimeoutMSec;
 }

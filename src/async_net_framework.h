@@ -77,7 +77,7 @@ typedef struct {
 	int (*HandleLoop) ();
 	//int (*HandleLoop) (SocketClientDef *pstScd, void *pUserInfo);
 	int (*HandleUdpPkg) (SocketClientDef *pstScd, void *pUserInfo, int iUdpName, void *pPkg, int iPkgLen);
-	int (*HandleClose) (SocketClientDef *pstScd, void *pUserInfo, char *sErrInfo);
+	int (*HandleClose) (SocketClientDef *pstScd, void *pUserInfo);
 	
 } SrvCallBack;
 

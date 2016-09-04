@@ -100,8 +100,8 @@ GetShmSize	comm/src/cm_shm.c	/^int GetShmSize(int iKey) $/;"	f
 GetWord	comm/src/cm_binary.c	/^int GetWord(char **p, int *piLen, unsigned short *pshValue)$/;"	f
 HandleAccept	async_net_framework.h	/^	int (*HandleAccept) (SocketClientDef *pstScd, void *pUserInfo);$/;"	m	struct:__anon7
 HandleAcceptDefault	async_net_framework.c	/^static int HandleAcceptDefault(SocketClientDef *pstScd, void *pUserInfo)$/;"	f	file:
-HandleClose	async_net_framework.h	/^	int (*HandleClose) (SocketClientDef *pstScd, void *pUserInfo, char *sErrInfo);$/;"	m	struct:__anon7
-HandleCloseDefault	async_net_framework.c	/^static int HandleCloseDefault(SocketClientDef *pstScd, void *pUserInfo, char *sErrInfo)$/;"	f	file:
+HandleClose	async_net_framework.h	/^	int (*HandleClose) (SocketClientDef *pstScd, void *pUserInfo);$/;"	m	struct:__anon7
+HandleCloseDefault	async_net_framework.c	/^static int HandleCloseDefault(SocketClientDef *pstScd, void *pUserInfo)$/;"	f	file:
 HandleConnect	async_net_framework.h	/^	int (*HandleConnect) (SocketClientDef *pstScd, void *pUserInfo);$/;"	m	struct:__anon7
 HandleConnectDefault	async_net_framework.c	/^static int HandleConnectDefault(SocketClientDef *pstScd, void *pUserInfo)$/;"	f	file:
 HandleLoop	async_net_framework.h	/^	int (*HandleLoop) ();$/;"	m	struct:__anon7
@@ -119,7 +119,7 @@ IsInnerIp	comm/src/cm_net.c	/^int IsInnerIp(in_addr_t dwIp)$/;"	f
 IsPrime	comm/src/cm_math.c	/^int IsPrime(int iNum)$/;"	f
 LOCK_FILE_NAME_LEN	comm/src/cm_shm.c	148;"	d	file:
 LOG	async_base.c	25;"	d	file:
-LOG	async_net_framework.c	50;"	d	file:
+LOG	async_net_framework.c	51;"	d	file:
 LOG_FORMAT_TYPE_NOTIME	comm/src/cm_log.h	38;"	d
 LOG_FORMAT_TYPE_TIME	comm/src/cm_log.h	39;"	d
 LOG_SHIFT_BY_COUNT	comm/src/cm_log.h	36;"	d
@@ -132,8 +132,8 @@ MAX_CLTDEF	async_net_framework.h	17;"	d
 MAX_CONFIG_LEN	comm/src/cm_cfg.c	7;"	d	file:
 MAX_LISTENING_NUM	comm/src/cm_net.c	65;"	d	file:
 MAX_LOG_FILE_NAME_LEN	comm/src/cm_log.h	13;"	d
-MAX_TCP_PORT	async_net_framework.c	6;"	d	file:
-MAX_UDP_PORT	async_net_framework.c	7;"	d	file:
+MAX_TCP_PORT	async_net_framework.c	7;"	d	file:
+MAX_UDP_PORT	async_net_framework.c	8;"	d	file:
 NEED_BLOCK	comm/src/cm_net.h	22;"	d
 NO_BLOCK	comm/src/cm_net.h	21;"	d
 OBJS	Makefile	/^OBJS=$(CSRC:.c=.o) $/;"	m
@@ -142,15 +142,23 @@ OBJS	comm/src/Makefile	/^OBJS=$(CSRC:.c=.o) $/;"	m
 PERSION_ARRAY_SIZE	comm/example/test_cm_shm.c	11;"	d	file:
 PKG_LEN	comm/src/cm_debug.c	4;"	d	file:
 Person	comm/example/test_cm_shm.c	/^struct Person {$/;"	s	file:
+ProcessAccept	async_net_framework.c	/^int ProcessAccept(SocketContext *pContext, void *pUserInfo)$/;"	f
+ProcessClose	async_net_framework.c	/^int ProcessClose(SocketContext *pContext, void *pUserInfo)$/;"	f
+ProcessTcpConnect	async_net_framework.c	/^int ProcessTcpConnect(SocketContext*pContext, void *pUserInfo)$/;"	f
+ProcessTcpRead	async_net_framework.c	/^int ProcessTcpRead(SocketContext *pContext, void *pUserInfo)$/;"	f
+ProcessTcpWrite	async_net_framework.c	/^int ProcessTcpWrite(SocketContext*pContext, void *pUserInfo)$/;"	f
+ProcessUdpRead	async_net_framework.c	/^int ProcessUdpRead(SocketContext *pContext, void *pUserInfo)$/;"	f
+ProcessUdpWrite	async_net_framework.c	/^int ProcessUdpWrite(SocketContext*pContext, void *pUserInfo)$/;"	f
 RECVBUF_LEN	async_net_framework.h	12;"	d
 RECVBUF_LEN	async_net_framework.h	9;"	d
 RecvBuf	async_net_framework.h	/^	char RecvBuf[RECVBUF_LEN];$/;"	m	struct:__anon6
 SENDBUF_LEN	async_net_framework.h	10;"	d
 SENDBUF_LEN	async_net_framework.h	13;"	d
-SET_CALLBACK	async_net_framework.c	113;"	d	file:
-SET_CALLBACK	async_net_framework.c	136;"	d	file:
+SET_CALLBACK	async_net_framework.c	114;"	d	file:
+SET_CALLBACK	async_net_framework.c	137;"	d	file:
 SHM_ID	comm/example/test_cm_shm.c	9;"	d	file:
 SOCKET_TCP_ACCEPT	async_net_framework.h	/^	SOCKET_TCP_ACCEPT,$/;"	e	enum:__anon2
+SOCKET_TCP_CONNECTED	async_net_framework.h	/^	SOCKET_TCP_CONNECTED,$/;"	e	enum:__anon2
 SOCKET_TCP_CONNECTING	async_net_framework.h	/^	SOCKET_TCP_CONNECTING,$/;"	e	enum:__anon2
 SOCKET_TCP_LISTEN	async_net_framework.h	/^	SOCKET_TCP_LISTEN,$/;"	e	enum:__anon2
 SOCKET_TCP_RECONNECT_WAIT	async_net_framework.h	/^	SOCKET_TCP_RECONNECT_WAIT,$/;"	e	enum:__anon2
@@ -158,6 +166,7 @@ SOCKET_UDP	async_net_framework.h	/^	SOCKET_UDP$/;"	e	enum:__anon2
 SOCKET_UNUSED	async_net_framework.h	/^	SOCKET_UNUSED,$/;"	e	enum:__anon2
 STRING_BUFFER_LEN	comm/src/cm_time.c	7;"	d	file:
 SendBuf	async_net_framework.h	/^	char SendBuf[SENDBUF_LEN];$/;"	m	struct:__anon6
+SendTcpPkg	async_net_framework.c	/^int SendTcpPkg(SocketClientDef *pstScd, void *pUserInfo, void *pPkg, int iPkgLen)$/;"	f
 SetCallBack	async_net_framework.c	/^static void SetCallBack(SrvCallBack *pstDst, SrvCallBack *pstSrc)$/;"	f	file:
 SetLimit	async_net_framework.c	/^static void SetLimit(SrvConfig *pstSrvConfig)$/;"	f	file:
 SetNBLock	comm/src/cm_net.c	/^int SetNBLock(int iSock)$/;"	f
