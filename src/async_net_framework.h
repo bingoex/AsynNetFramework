@@ -92,7 +92,7 @@ typedef struct {
 extern "C" {
 #endif 
 
-int AsyncNetFrameworkInit (void *pUserInfoBuf, int iUserInfoBufLen, int iUserInfoLen,
+int AsyncNetFrameworkInit(void *pUserInfoBuf, int iUserInfoBufLen, int iUserInfoLen,
 		LogFile *pstLog, int iLogLevel,
 		ListenEntry *pstTcpListenEntrys, int iTcpNum, int iPkgHeadLenAsSrv, int iMaxAcceptSocketNum,
 		ListenEntry *pstUdpListenEntrys, int iUdpNum,

@@ -22,8 +22,8 @@ CC = g++
 	$(CC) $(ARGS) -c $*.c $(COMM_LIB)
 
 all: $(OBJS)
-	rm -f amf.a
-	ar -q amf.a $(OBJS)
+	rm -f anf.a
+	ar -q anf.a $(OBJS)
 
 print:
 	@echo $(CSRC)

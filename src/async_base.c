@@ -8,8 +8,8 @@
 #include "async_base.h"
 
 
-//#define ANF_SELECT
-#define ANF_EPOLL
+#define ANF_SELECT
+//#define ANF_EPOLL
 //#define ANF_KQUEUE
 
 #if defined(ANF_EPOLL)
@@ -25,7 +25,7 @@
 #define LOG(fmt, args...) \
 	do { \
 		if (pstAnfMng->pstLog) { \
-			Log(pstAnfMng->pstLog, LOG_FORMAT_TYPE_TIME, "%s:%d:%s "fmt, \
+			Log(pstAnfMng->pstLog, LOG_FORMAT_TYPE_TIME, "[%s][%d]%s() "fmt, \
 					__FILE__, __LINE__, __FUNCTION__, ## args);\
 		} \
 	}while(0) \
@@ -57,11 +57,15 @@ struct _AnfMng
 
 AnfMng *AnfInit(LogFile *pstLog, int iLogLevel, int iMaxSocketNum)
 {
+
 	AnfMng *pstAnfMng;
 	if (!(pstAnfMng = (AnfMng *)malloc(sizeof(AnfMng)))) {
 		perror("malloc AnfMng failed");
 		return NULL;
 	}
+
+	//TODO
+	LOG("try to AnfInit");
 
 	memset(pstAnfMng, 0 , sizeof(*pstAnfMng));
 
@@ -73,7 +77,8 @@ AnfMng *AnfInit(LogFile *pstLog, int iLogLevel, int iMaxSocketNum)
 		return NULL;
 	}
 
-	LOG("iLogLevel %d iMaxSocketNum %d", iLogLevel, iMaxSocketNum);
+	//TODO
+	LOG("AnfInit iLogLevel %d iMaxSocketNum %d", iLogLevel, iMaxSocketNum);
 
 #if defined(ANF_EPOLL)
 	if ((pstAnfMng->iEpollFd = epoll_create(iMaxSocketNum)) < 0) {
@@ -86,10 +91,10 @@ AnfMng *AnfInit(LogFile *pstLog, int iLogLevel, int iMaxSocketNum)
 		return NULL;
 	}
 
-	LOG("iEpollFd %d", pstAnfMng->iEpollFd);
+	LOG("iEpollFd %d evs %p", pstAnfMng->iEpollFd, pstAnfMng->evs);
 #elif defined(ANF_SELECT)
 	if (iMaxSocketNum > FD_SETSIZE) {
-		perror("iMaxSocketNum > FD_SETSIZE");
+		LOG("iMaxSocketNum(%d) > FD_SETSIZE(%d)", iMaxSocketNum, FD_SETSIZE);
 		return NULL;
 	}
 
@@ -98,13 +103,13 @@ AnfMng *AnfInit(LogFile *pstLog, int iLogLevel, int iMaxSocketNum)
 	FD_ZERO(&(pstAnfMng->stExceptFds));
 	FD_ZERO(&(pstAnfMng->stReadTmpFds));
 	FD_ZERO(&(pstAnfMng->stWriteTmpFds));
-	FD_ZERO(&(pstAnfMng->stExceptFds));
+	FD_ZERO(&(pstAnfMng->stExceptTmpFds));
 
 #elif defined(ANF_KQUEUE)
 
 #endif
 
-	LOG("AnfInit pstAnfMng %p", pstAnfMng);
+	LOG("AnfInit pstAnfMng %p success!!!", pstAnfMng);
 	return pstAnfMng;
 }
 
@@ -362,11 +367,12 @@ int AnfGetReadyFd(AnfMng *pstAnfMng, int *piPos, int *piFlag)
 			return ((*piPos)++);
 
 		(*piPos)++;
-
-		return -8;
 	}
+
+	return -8;
 #elif defined(ANF_KQUEUE)
 
 	return -1;
 #endif
 }
+
