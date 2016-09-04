@@ -2,6 +2,7 @@
 #define _ASYNC_NET_FRAMEWORK_H_
 
 #include "async_base.h"
+#include "cm_net.h"
 
 
 #ifdef __SERVER__
@@ -25,6 +26,7 @@ typedef enum {
 	SOCKET_TCP_ACCEPT,
 	SOCKET_TCP_LISTEN,
 	SOCKET_TCP_CONNECTING,
+	SOCKET_TCP_CONNECTED,
 	SOCKET_TCP_RECONNECT_WAIT,
 	SOCKET_UDP
 } SocketStat;
@@ -48,21 +50,21 @@ typedef struct {
 	int aiSocket[MAX_CLTDEF];
 	ClientDef astClientDef[MAX_CLTDEF];
 	SocketStat aStat[MAX_CLTDEF];
-	time_t tLastConnectTime[MAX_CLTDEF];
+	time_t atLastConnectTime[MAX_CLTDEF];
 } ClientDefMng;
 
 typedef struct {
-	const int iSocket;
-	const struct sockaddr_in stClientAddr;
-	const time_t tCreateTime;
-	const time_t tLastAccessTime;
-	const SocketStat stat;
+	int iSocket;
+	struct sockaddr_in stClientAddr;
+	time_t tCreateTime;
+	time_t tLastAccessTime;
+	SocketStat stat;
 	int iBytesRecved;
 	int iBytesSend;
 	int iPkgLen;
 	char RecvBuf[RECVBUF_LEN];
 	char SendBuf[SENDBUF_LEN];
-	int iClientIndex;
+	int iClientIndex; // if context is client, index astClientDef
 } SocketContext;
 
 

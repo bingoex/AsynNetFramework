@@ -100,7 +100,7 @@ static int HandleCloseDefault(SocketClientDef *pstScd, void *pUserInfo, char *sE
 
 static void SetCallBack(SrvCallBack *pstDst, SrvCallBack *pstSrc)
 {
-	static SrvCallBack stDefaultCallBack = {
+	static SrvCallBack stDefaultCallBack;/* = {
 		HandlePkgHead:HandlePkgHeadDefault,
 		HandlePkg:HandlePkgDefault,
 		HandleAccept:HandleAcceptDefault,
@@ -108,7 +108,7 @@ static void SetCallBack(SrvCallBack *pstDst, SrvCallBack *pstSrc)
 		HandleLoop:HandleLoopDefault,
 		HandleUdpPkg:HandleUdpPkgDefault,
 		HandleClose:HandleCloseDefault
-	};
+	};*/
 
 #define SET_CALLBACK(x) \
 	do { \
@@ -237,10 +237,13 @@ int AsyncNetFrameworkInit (void *pUserInfoBuf, int iUserInfoBufLen, int iUserInf
 int InitListenSocket()
 {
 	int i = 0, iSocket, iRet = 0;
-	SocketConext *pContext = NULL;
+	SocketContext *pContext = NULL;
 
 	//init tcp listen socket
 	for (i = 0; i < pstSrvConfig->iTcpNum; i++) {
+
+		if (strlen(pstSrvConfig->stTcpListenEntrys[i].sIp) < 7 || pstSrvConfig->stTcpListenEntrys[i].iPort <=0)
+			return -15;
 
 		iRet = CreateTcpSocketEx(&iSocket, pstSrvConfig->stTcpListenEntrys[i].sIp,
 				pstSrvConfig->stTcpListenEntrys[i].iPort, NO_BLOCK);
@@ -266,16 +269,19 @@ int InitListenSocket()
 	//init udp listen socket
 	for (i = 0; i < pstSrvConfig->iUdpNum; i++) {
 
+		if (strlen(pstSrvConfig->stUdpListenEntrys[i].sIp) < 7 || pstSrvConfig->stUdpListenEntrys[i].iPort <=0)
+			return -17;
+
 		iRet = CreateUdpSocketEx(&iSocket, pstSrvConfig->stUdpListenEntrys[i].sIp,
 				pstSrvConfig->stUdpListenEntrys[i].iPort, NO_BLOCK);
 
 		if (!iRet || iSocket <= 0) {
 			LOG("CreateUdpSocketEx failed iRet(%d) ip %s port %d id %d", iRet, pstSrvConfig->stUdpListenEntrys[i].sIp, 
 					pstSrvConfig->stUdpListenEntrys[i].iPort, pstSrvConfig->stUdpListenEntrys[i].iName);
-			return -11;
+			return -18;
 		}
 
-		pstSrvConfig->aiUdpSocket[i] = iSocket
+		pstSrvConfig->aiUdpSocket[i] = iSocket;
 		pContext = &((pstSrvConfig->astSocketContext)[iSocket]);
 		pContext->stat = SOCKET_UDP;
 		pContext->iSocket = iSocket;
@@ -284,7 +290,7 @@ int InitListenSocket()
 		if ((iRet = AnfAddFd(pstSrvConfig->pstAnfMng, iSocket, ANF_FLAG_READ | ANF_FLAG_ERROR)) < 0) {
 			LOG("AnfAddFd failed iRet(%d) ip %s port %d id %d iSock %d", iRet, pstSrvConfig->stUdpListenEntrys[i].sIp, 
 					pstSrvConfig->stUdpListenEntrys[i].iPort, pstSrvConfig->stUdpListenEntrys[i].iName, iSocket);
-			return -13;
+			return -19;
 		}
 	}
 
@@ -293,6 +299,70 @@ int InitListenSocket()
 
 int InitClientSocket()
 {
+	int i = 0, iSocket, iRet = 0;
+	SocketContext *pContext = NULL;
+
+	//init tcp listen socket
+	for (i = 0; i < pstSrvConfig->stCltMng.iClientNum; i++) {
+		ClientDef *pstClienDef = &(pstSrvConfig->stCltMng.astClientDef[i]);
+
+		if (!pstClienDef || strlen(pstClienDef->sServerIp) < 7 || pstClienDef->iServerPort <= 0)
+			return -21;
+
+		iRet = CreateTcpClientSocketEx(&iSocket, pstClienDef->sServerIp, pstClienDef->iServerPort, NO_BLOCK);
+
+		if (!iRet || iSocket <= 0 ||iSocket > pstSrvConfig->iMaxFdNum) {
+			LOG("CreateTcpClientSocketEx failed iRet(%d) ip %s port %d id %d socket %d", iRet, pstClienDef->sServerIp,
+					pstClienDef->iServerPort, pstClienDef->iTcpClientId, iSocket);
+			return -23;
+		}
+
+		pContext = &((pstSrvConfig->astSocketContext)[iSocket]);
+		pContext->stat = SOCKET_TCP_CONNECTING;
+		pContext->iSocket = iSocket;
+		pContext->tCreateTime = pContext->tLastAccessTime = time(NULL);
+		pContext->iClientIndex = i;// index astClientDef
+
+		pstSrvConfig->stCltMng.aiSocket[i] =iSocket;
+		pstSrvConfig->stCltMng.aStat[i] = pContext->stat;
+		pstSrvConfig->stCltMng.atLastConnectTime[i] = time(NULL);
+
+		if ((iRet = AnfAddFd(pstSrvConfig->pstAnfMng, iSocket, ANF_FLAG_WRITE | ANF_FLAG_ERROR)) < 0) {
+			LOG("AnfAddFd failed iRet(%d) ip %s port %d id %d iSock %d", iRet,
+					pstClienDef->sServerIp, pstClienDef->iServerPort, pstClienDef->iTcpClientId, iSocket);
+			return -25;
+		}
+	}
+	return 0;
+}
+
+int ProcessClose(SocketContext*pContext, void *pUserInfo)
+{
+	return 0;
+}
+
+int ProcessAccept(SocketContext*pContext, void *pUserInfo)
+{
+	return 0;
+}
+
+int ProcessTcpRead(SocketContext*pContext, void *pUserInfo)
+{
+	return 0;
+}
+
+int ProcessUdpRead(SocketContext*pContext, void *pUserInfo)
+{
+	return 0;
+}
+
+int ProcessTcpWrite(SocketContext*pContext, void *pUserInfo)
+{
+	return 0;
+}
+
+int ProcessUdpWrite(SocketContext*pContext, void *pUserInfo)
+{
 	return 0;
 }
 
@@ -300,13 +370,13 @@ int AsyncNetFrameworkLoop()
 {
 	int i = 0, iRet = 0;
 
-	pstSrvConfig->astSocketContext = malloc(sizeof(*(pstSrvConfig->astSocketContext)) * pstSrvConfig->iMaxFdNum);
+	pstSrvConfig->astSocketContext = (SocketContext *)malloc(sizeof(*(pstSrvConfig->astSocketContext)) * pstSrvConfig->iMaxFdNum);
 	if (!(pstSrvConfig->astSocketContext)) {
 		perror("astSocketContext malloc failed");
 		return -1;
 	}
 
-	for (i = 0; i < pstSrvConfig.iMaxFdNum; i++) {
+	for (i = 0; i < pstSrvConfig->iMaxFdNum; i++) {
 		pstSrvConfig->astSocketContext[i].stat = SOCKET_UNUSED;
 	}
 
@@ -329,8 +399,76 @@ int AsyncNetFrameworkLoop()
 
 	pstSrvConfig->iCurAcceptSocketNum = 0;
 
+	int iPos, iFd, iFlag;
+	int iIsTriggered = 0;
+	SocketContext *pContext;
+	//TODO
+	void *pUserInfo;
+	SrvCallBack *pstCallback = &(pstSrvConfig->stCallBack);
+
 	while(true) {
 		//do asyc io
+		pstCallback->HandleLoop();
+		if ((iIsTriggered = AnfWaitForFd(pstSrvConfig->pstAnfMng, pstSrvConfig->iTimeoutMSec)) < 0) {
+			LOG("AnfWaitForFd failed ret %d", iIsTriggered);
+			continue;
+		}
+
+		iPos = 0;
+		while((iFd = AnfGetReadyFd(pstSrvConfig->pstAnfMng, &iPos, &iFlag)) >= 0) {
+			pContext = &(pstSrvConfig->astSocketContext[iFd]);
+			pUserInfo = (char *)pstSrvConfig->aUserInfo + (iFd * pstSrvConfig->iUserInfoLen);
+
+			if (pContext == NULL || pUserInfo == NULL) {
+				LOG("Bug pContext == NULL || pUserInfo == NULL");
+				continue;
+			}
+
+			if (pContext->iSocket != iFd){
+				LOG("Bug pContext->iSocket(%d) != iFd(%d)", pContext->iSocket, iFd);
+				continue;
+			}
+
+			//error
+			if (iFlag & ANF_FLAG_ERROR) {
+				LOG("iFlag with error");
+				ProcessClose(pContext, pUserInfo);
+				continue;
+			}
+
+			if (iFlag & ANF_FLAG_READ) {
+				if (pContext->stat == SOCKET_TCP_LISTEN) {
+					ProcessAccept(pContext, pUserInfo);
+					continue;
+				}
+
+				if (pContext->stat == SOCKET_TCP_ACCEPT || pContext->stat == SOCKET_TCP_CONNECTED) {
+					pContext->tLastAccessTime = time(NULL);
+					ProcessTcpRead(pContext, pUserInfo);
+				}
+
+				if (pContext->stat == SOCKET_UDP) {
+
+					//TODO
+					ProcessUdpRead(pContext, pUserInfo);
+				}
+			}
+
+			if (iFlag & ANF_FLAG_WRITE) {
+				/*
+				if (pContext->stat == SOCKET_TCP_CONNECTING) {
+					ProcessTcpWrite(pContext, pUserInfo);
+				}
+				*/
+
+				//TODO
+				if (pContext->stat == SOCKET_UDP) {
+					ProcessUdpWrite(pContext, pUserInfo);
+				} else {
+					ProcessTcpWrite(pContext, pUserInfo);
+				}
+			}
+		}
 	}
 
 	return 0;

@@ -327,7 +327,7 @@ int AnfWaitForFd(AnfMng *pstAnfMng, int iTimeoutMSec)
 
 	pstAnfMng->iIsTriggered = iIsTriggered;
 
-	return 0;
+	return iIsTriggered;
 }
 
 
