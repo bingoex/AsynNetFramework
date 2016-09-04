@@ -235,7 +235,7 @@ int AsyncNetFrameworkInit (void *pUserInfoBuf, int iUserInfoBufLen, int iUserInf
 	return 0;
 }
 
-int InitListenSocket()
+static int InitListenSocket()
 {
 	int i = 0, iSocket, iRet = 0;
 	SocketContext *pContext = NULL;
@@ -298,7 +298,7 @@ int InitListenSocket()
 	return 0;
 }
 
-int InitClientSocket()
+static int InitClientSocket()
 {
 	int i = 0, iSocket, iRet = 0;
 	SocketContext *pContext = NULL;
@@ -337,7 +337,7 @@ int InitClientSocket()
 	return 0;
 }
 
-int ProcessClose(SocketContext *pContext, void *pUserInfo)
+static int ProcessClose(SocketContext *pContext, void *pUserInfo)
 {
 	SrvCallBack *pstCallback = &(pstSrvConfig->stCallBack);
 	int iRet = 0;
@@ -389,7 +389,7 @@ int ProcessClose(SocketContext *pContext, void *pUserInfo)
 	return 0;
 }
 
-int ProcessAccept(SocketContext *pContext, void *pUserInfo)
+static int ProcessAccept(SocketContext *pContext, void *pUserInfo)
 {
 	SrvCallBack *pstCallback = &(pstSrvConfig->stCallBack);
 	int iRet = 0, iSocket = 0;
@@ -456,7 +456,7 @@ int ProcessAccept(SocketContext *pContext, void *pUserInfo)
 	return 0;
 }
 
-int ProcessTcpRead(SocketContext *pContext, void *pUserInfo)
+static int ProcessTcpRead(SocketContext *pContext, void *pUserInfo)
 {
 	SrvCallBack *pstCallback = &(pstSrvConfig->stCallBack);
 	int iRet = 0, iSocket = 0;
@@ -558,7 +558,7 @@ int ProcessTcpRead(SocketContext *pContext, void *pUserInfo)
 }
 
 //TODO
-int ProcessUdpRead(SocketContext *pContext, void *pUserInfo)
+static int ProcessUdpRead(SocketContext *pContext, void *pUserInfo)
 {
 	SrvCallBack *pstCallback = &(pstSrvConfig->stCallBack);
 	int iRet = 0;
@@ -590,7 +590,7 @@ int ProcessUdpRead(SocketContext *pContext, void *pUserInfo)
 	return 0;
 }
 
-int ProcessTcpConnect(SocketContext*pContext, void *pUserInfo)
+static int ProcessTcpConnect(SocketContext*pContext, void *pUserInfo)
 {
 	SrvCallBack *pstCallback = &(pstSrvConfig->stCallBack);
 	int iRet = 0;
@@ -632,7 +632,7 @@ int ProcessTcpConnect(SocketContext*pContext, void *pUserInfo)
 	return 0;
 }
 
-int ProcessTcpWrite(SocketContext*pContext, void *pUserInfo)
+static int ProcessTcpWrite(SocketContext*pContext, void *pUserInfo)
 {
 	int iRet = 0;
 
@@ -682,7 +682,7 @@ int ProcessTcpWrite(SocketContext*pContext, void *pUserInfo)
 	return 0;
 }
 
-int ProcessUdpWrite(SocketContext*pContext, void *pUserInfo)
+static int ProcessUdpWrite(SocketContext*pContext, void *pUserInfo)
 {
 	/*
 	SrvCallBack *pstCallback = &(pstSrvConfig->stCallBack);

@@ -92,6 +92,23 @@ typedef struct {
 extern "C" {
 #endif 
 
+int AsyncNetFrameworkInit (void *pUserInfoBuf, int iUserInfoBufLen, int iUserInfoLen,
+		LogFile *pstLog, int iLogLevel,
+		ListenEntry *pstTcpListenEntrys, int iTcpNum, int iPkgHeadLenAsSrv, int iMaxAcceptSocketNum,
+		ListenEntry *pstUdpListenEntrys, int iUdpNum,
+		ClientDef *pstClientDefs, int iClientNum, int iPkgHeadLenAsClt,
+		SrvCallBack *pstCallBack);
+
+int AsyncNetFrameworkLoop();
+
+int SendTcpPkg(SocketClientDef *pstScd, void *pUserInfo, void *pPkg, int iPkgLen);
+
+int SendUdpPkg(SocketClientDef *pstScd, const struct sockaddr_in *pstAddr, 
+		void *pUserInfo, void *pPkg, int iPkgLen);
+
+int GetContext(int iSocket, SocketClientDef **ppstScd, void **ppUserInfo);
+
+void SetWaitTimeout(int iTimeoutMSec);
 
 #ifdef __cplusplus
 }
