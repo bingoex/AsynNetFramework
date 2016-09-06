@@ -69,24 +69,24 @@ static SrvCallBack stServerCallBack = {
 };
 
 #define TCP_ENTRY_NUM 3
-#define UDP_ENTRY_NUM 1
+#define UDP_ENTRY_NUM 3
 int main(int argc, char *argv[])
 {
 	int i = 0, iRet = 0;
 
 	//init log
-	InitLogFile(&stLogFile, "/tmp/log/test_server", LOG_SHIFT_BY_SIZE, 5, 10000);
+	InitLogFile(&stLogFile, "/tmp/log/test_server", LOG_SHIFT_BY_SIZE, 5, 500000);
 	LOG("main begin");
 
 	//init tcp listen
 	int iTcpNum = TCP_ENTRY_NUM;
 	ListenEntry stTcpListenEntry[TCP_ENTRY_NUM];
 	i = 0;
-	strncpy(stTcpListenEntry[i].sIp, "192.168.1.103", sizeof(stTcpListenEntry[i].sIp));
+	strncpy(stTcpListenEntry[i].sIp, "192.168.1.108", sizeof(stTcpListenEntry[i].sIp));
 	stTcpListenEntry[i].iPort = 8080;
 	stTcpListenEntry[i].iName = i;
 	i++;
-	strncpy(stTcpListenEntry[i].sIp, "192.168.1.103", sizeof(stTcpListenEntry[i].sIp));
+	strncpy(stTcpListenEntry[i].sIp, "192.168.1.108", sizeof(stTcpListenEntry[i].sIp));
 	stTcpListenEntry[i].iPort = 8081;
 	stTcpListenEntry[i].iName = i;
 	i++;
@@ -99,11 +99,11 @@ int main(int argc, char *argv[])
 	int iUdpNum = UDP_ENTRY_NUM;
 	ListenEntry stUdpListenEntry[UDP_ENTRY_NUM];
 	i = 0;
-	strncpy(stUdpListenEntry[i].sIp, "192.168.1.103", sizeof(stUdpListenEntry[i].sIp));
+	strncpy(stUdpListenEntry[i].sIp, "192.168.1.108", sizeof(stUdpListenEntry[i].sIp));
 	stUdpListenEntry[i].iPort = 8080;
 	stUdpListenEntry[i].iName = i;
 	i++;
-	strncpy(stUdpListenEntry[i].sIp, "192.168.1.103", sizeof(stUdpListenEntry[i].sIp));
+	strncpy(stUdpListenEntry[i].sIp, "192.168.1.108", sizeof(stUdpListenEntry[i].sIp));
 	stUdpListenEntry[i].iPort = 8081;
 	stUdpListenEntry[i].iName = i;
 	i++;

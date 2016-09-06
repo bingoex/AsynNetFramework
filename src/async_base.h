@@ -25,6 +25,7 @@ extern "C" {
 struct _AnfMng;
 typedef struct _AnfMng AnfMng;
 
+
 #define ANF_FLAG_READ 0x1
 #define ANF_FLAG_WRITE 0x2
 #define ANF_FLAG_ERROR 0x4

@@ -6,7 +6,7 @@ CPPSRC=$(shell ls *.cpp)
 
 OBJS=$(CSRC:.c=.o) 
 
-COMM_DIR = ../src/comm/src
+COMM_DIR = ../comm/src
 
 #-lr -lstdc++
 COMM_LIB = $(COMM_DIR)/cm_lib.a -I$(COMM_DIR) 

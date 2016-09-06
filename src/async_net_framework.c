@@ -377,7 +377,7 @@ static int InitClientSocket()
 
 		iRet = CreateTcpClientSocketEx(&iSocket, pstClienDef->sServerIp, pstClienDef->iServerPort, NO_BLOCK);
 
-		if (!iRet || iSocket <= 0 ||iSocket > pstSrvConfig->iMaxFdNum) {
+		if (iRet || iSocket <= 0 ||iSocket > pstSrvConfig->iMaxFdNum) {
 			LOG("CreateTcpClientSocketEx failed iRet(%d) ip %s port %d id %d socket %d", iRet, pstClienDef->sServerIp,
 					pstClienDef->iServerPort, pstClienDef->iTcpClientId, iSocket);
 			return -23;
@@ -403,7 +403,8 @@ static int InitClientSocket()
 		}
 
 		//TODO
-		LOG("AnfAddFd success iRet(%d) ip %s port %d id %d iSock %d", iRet, pstClienDef->sServerIp, pstClienDef->iServerPort, pstClienDef->iTcpClientId, iSocket);
+		LOG("AnfAddFd success iRet(%d) ip %s port %d id %d iSock %d write %d", 
+				iRet, pstClienDef->sServerIp, pstClienDef->iServerPort, pstClienDef->iTcpClientId, iSocket);
 
 	}
 
@@ -666,7 +667,7 @@ static int ProcessUdpRead(SocketContext *pContext, void *pUserInfo)
 	return 0;
 }
 
-static int ProcessTcpConnect(SocketContext*pContext, void *pUserInfo)
+static int ProcessTcpConnect(SocketContext *pContext, void *pUserInfo)
 {
 	SrvCallBack *pstCallback = &(pstSrvConfig->stCallBack);
 	int iRet = 0;
@@ -802,6 +803,9 @@ int AsyncNetFrameworkLoop()
 		return -3;
 	}
 
+	//TODO
+	LOG("pstAnfMng %p", pstSrvConfig->pstAnfMng);
+
 	if ((iRet = InitListenSocket()) < 0) {
 		LOG("InitListenSocket failed iRet %d", iRet);
 		return -5;
@@ -826,7 +830,9 @@ int AsyncNetFrameworkLoop()
 		//do asyc io
 		pstCallback->HandleLoop();
 
-		if ((iIsTriggered = AnfWaitForFd(pstSrvConfig->pstAnfMng, pstSrvConfig->iTimeoutMSec)) < 0) {
+		//TODO check tcp connect
+
+		if ((iIsTriggered = AnfWaitForFd(pstSrvConfig->pstAnfMng, pstSrvConfig->iTimeoutMSec)) <= 0) {
 			LOG("AnfWaitForFd failed ret %d", iIsTriggered);
 			continue;
 		}
@@ -898,6 +904,7 @@ int AsyncNetFrameworkLoop()
 					LOG("ANF_FLAG_WRITE SOCKET_TCP_CONNECTING");
 
 					ProcessTcpConnect(pContext, pUserInfo);
+					break;
 				}
 
 				//TODO
