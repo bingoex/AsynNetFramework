@@ -1,6 +1,7 @@
 #include "async_net_framework.h"
 #include "cm_process.h"
 #include "cm_log.h"
+#include "cm_debug.h"
 #include "comm_struct.h"
 
 #include <stdio.h>
@@ -35,7 +36,23 @@ static int HandleAcceptClient(SocketClientDef *pstScd, void *pUserInfo)
 
 static int HandleConnectClient(SocketClientDef *pstScd, void *pUserInfo)
 {
+	//sent pkg
 	LOG("HandleConnectClient");
+	static Pkg stPkg;
+	int iRet = 0;
+
+	memset(&stPkg, 0, sizeof(Pkg));
+	stPkg.cStx = 0x1;
+	stPkg.stHead.cVer = 1;
+	stPkg.stHead.wCmd = 0xef;
+	//stPkg.stHead.dwLength = 1 +sizeof(PkgHead) + 1;
+	stPkg.stHead.dwLength = 1048577;
+	stPkg.sBody[0] = 0x2;
+
+	iRet = SendTcpPkg(pstScd, pUserInfo, &stPkg, stPkg.stHead.dwLength);
+
+	//LOG("SendTcpPkg iRet %d dumpPkg:\n%s", iRet, DumpPackage(&stPkg, stPkg.stHead.dwLength));
+	
 	return 0;
 }
 

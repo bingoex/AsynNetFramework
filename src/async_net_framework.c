@@ -424,12 +424,6 @@ static int ProcessClose(SocketContext *pContext, void *pUserInfo)
 		return -51;
 	}
 
-	if (pContext->iSocket != pstSrvConfig->stCltMng.aiSocket[pContext->iClientIndex]) {
-		LOG("BUG pContext->iSocket(%d) != stCltMng.iSocke(%d)", 
-				pContext->iSocket, pstSrvConfig->stCltMng.aiSocket[pContext->iClientIndex]);
-		return -53;
-	}
-
 	if (pContext->stat == SOCKET_UNUSED
 			|| (pContext->stat != SOCKET_TCP_ACCEPT &&
 				pContext->stat != SOCKET_TCP_CONNECTING &&
@@ -441,6 +435,12 @@ static int ProcessClose(SocketContext *pContext, void *pUserInfo)
 	pstCallback->HandleClose((SocketClientDef *)pContext, pUserInfo);
 
 	if (pContext->stat == SOCKET_TCP_CONNECTED || pContext->stat == SOCKET_TCP_CONNECTING) {
+		//TODO
+		if (pContext->iSocket != pstSrvConfig->stCltMng.aiSocket[pContext->iClientIndex]) {
+			LOG("BUG SOCKET_TCP_CONNECTED pContext->iSocket(%d) != stCltMng.iSocke(%d)", 
+					pContext->iSocket, pstSrvConfig->stCltMng.aiSocket[pContext->iClientIndex]);
+		}
+
 		LOG("change cltMng astat to SOCKET_TCP_RECONNECT_WAIT");
 		pstSrvConfig->stCltMng.aStat[pContext->iClientIndex] = SOCKET_TCP_RECONNECT_WAIT;
 	}
@@ -583,7 +583,8 @@ static int ProcessTcpRead(SocketContext *pContext, void *pUserInfo)
 						pContext->iBytesRecved, iReqLen, pContext->stat);
 			}
 
-			//try to get iPkgLen
+			//try to get iPkgLen !!!
+			//iPkgLen meaning the one hold pkg size
 			iRet = pstCallback->HandlePkgHead((SocketClientDef *)pContext, pUserInfo, 
 					pContext->RecvBuf, pContext->iBytesRecved, &pContext->iPkgLen);
 			if (iRet < 0){
@@ -594,6 +595,12 @@ static int ProcessTcpRead(SocketContext *pContext, void *pUserInfo)
 		}
 
 		iPkgLen = pContext->iPkgLen;
+
+		//TODO
+		if (iPkgLen == 0) {
+			LOG("BUG !! pContext->iPkgLen == 0");
+			return -64;
+		}
 
 		if (iPkgLen > sizeof(pContext->RecvBuf)) {
 			LOG("NO Way!! iPkgLen(%d) > RecvBuf(%d)", iPkgLen, pContext->iPkgLen);
@@ -947,7 +954,7 @@ int SendTcpPkg(SocketClientDef *pstScd, void *pUserInfo, void *pPkg, int iPkgLen
 	}
 
 	if (pPkg == NULL || iPkgLen <= 0 || iPkgLen > sizeof(pContext->SendBuf)) {
-		LOG("Pkg error");
+		LOG("Pkg error param error");
 		return -4;
 	}
 

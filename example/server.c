@@ -18,6 +18,13 @@ static LogFile stLogFile;
 static int HandlePkgHeadServer(SocketClientDef *pstScd, void *pUserInfo, void *pPkg, int iBytesRecved, int *piPkgLen)
 {
 	LOG("HandlePkgHeadServer");
+	Pkg *stPkg = (Pkg *)pPkg;
+	LOG("recv iBytesRecved %d head stx %d ver %d cmd %d len %u", 
+			iBytesRecved, stPkg->cStx, stPkg->stHead.cVer, stPkg->stHead.wCmd, stPkg->stHead.dwLength);
+
+	//!!must return piPkgLen
+	*piPkgLen = stPkg->stHead.dwLength;
+
 	return 0;
 }
 

@@ -182,7 +182,7 @@ static inline void AnfSetSeletFds(AnfMng *pstAnfMng, int iFd, int iFlag)
 		FD_CLR(iFd, &(pstAnfMng->stExceptFds));
 	}
 
-	LOG("fd %d iFlag %d addr %p %p iFlag & ANF_FLAG_WRITE (%d) stWriteFds %d", 
+	LOG("fd %d iFlag %d addr %p %p iFlag & ANF_FLAG_WRITE (%d) stWriteFds %llu", 
 			iFd, iFlag, pstAnfMng, &(pstAnfMng->stWriteFds), iFlag & ANF_FLAG_WRITE, pstAnfMng->stWriteFds);
 }
 
@@ -221,9 +221,6 @@ int AnfAddFd(AnfMng *pstAnfMng, int iFd, int iFlag)
 	if (iFd <= 0)
 		return -1;
 
-	LOG("before iFd %d iFlag %d  ileve %u read %u write %u error %u addr %p %p", iFd, iFlag, pstAnfMng->iLogLevel,
-			pstAnfMng->stReadFds, pstAnfMng->stWriteFds, pstAnfMng->stExceptFds, pstAnfMng, &(pstAnfMng->stWriteFds));
-
 #if defined(ANF_EPOLL)
 	struct epoll_event ev;
 
@@ -245,8 +242,6 @@ int AnfAddFd(AnfMng *pstAnfMng, int iFd, int iFlag)
 
 #endif
 
-	LOG("after read %u write %u error %u addr %p %p", 
-			pstAnfMng->stReadFds, pstAnfMng->stWriteFds, pstAnfMng->stExceptFds, pstAnfMng, &(pstAnfMng->stWriteFds));
 	return 0;
 }
 
@@ -325,10 +320,8 @@ int AnfWaitForFd(AnfMng *pstAnfMng, int iTimeoutMSec)
 	pstAnfMng->stReadTmpFds = pstAnfMng->stReadFds;
 	pstAnfMng->stWriteTmpFds = pstAnfMng->stWriteFds;
 	pstAnfMng->stExceptTmpFds = pstAnfMng->stExceptFds;
-	LOG("iMaxSocketNum %d", pstAnfMng->iMaxSocketNum);
-	printf("iMaxSocketNum %d stWriteFds %d read %d\n", pstAnfMng->iMaxSocketNum, pstAnfMng->stWriteFds, pstAnfMng->stReadTmpFds);
-	LOG("stReadTmpFds %u stWriteTmpFds %u %u stExceptTmpFds %u iMaxSocketNum %d",
-			pstAnfMng->stReadTmpFds, pstAnfMng->stWriteTmpFds, pstAnfMng->stWriteFds, pstAnfMng->stExceptTmpFds, pstAnfMng->iMaxSocketNum);
+
+	//LOG("iMaxSocketNum %d", pstAnfMng->iMaxSocketNum);
 
 	iIsTriggered = select(pstAnfMng->iMaxSocketNum, 
 			&(pstAnfMng->stReadTmpFds), 
