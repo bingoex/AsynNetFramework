@@ -1,6 +1,7 @@
 #include "async_net_framework.h"
 #include "cm_process.h"
 #include "cm_log.h"
+#include "cm_debug.h"
 #include "comm_struct.h"
 
 #include <stdio.h>
@@ -28,9 +29,17 @@ static int HandlePkgHeadServer(SocketClientDef *pstScd, void *pUserInfo, void *p
 	return 0;
 }
 
+//echo
 static int HandlePkgServer(SocketClientDef *pstScd, void *pUserInfo, void *pPkg, int iPkgLen)
 {
 	LOG("HandlePkgServer");
+
+	LOG("iPkgLen %d", iPkgLen);
+	//LOG("dump :\n%s", DumpPackage(pPkg, iPkgLen));
+
+	int iRet = SendTcpPkg(pstScd, pUserInfo, pPkg, iPkgLen);
+	LOG("SendTcpPkg iRet %d", iRet);
+
 	return 0;
 }
 
@@ -75,8 +84,8 @@ static SrvCallBack stServerCallBack = {
 	HandleClose:HandleCloseServer
 };
 
-#define TCP_ENTRY_NUM 3
-#define UDP_ENTRY_NUM 3
+#define TCP_ENTRY_NUM 1
+#define UDP_ENTRY_NUM 1
 int main(int argc, char *argv[])
 {
 	int i = 0, iRet = 0;
@@ -89,6 +98,7 @@ int main(int argc, char *argv[])
 	int iTcpNum = TCP_ENTRY_NUM;
 	ListenEntry stTcpListenEntry[TCP_ENTRY_NUM];
 	i = 0;
+	/*
 	strncpy(stTcpListenEntry[i].sIp, "192.168.1.108", sizeof(stTcpListenEntry[i].sIp));
 	stTcpListenEntry[i].iPort = 8080;
 	stTcpListenEntry[i].iName = i;
@@ -97,6 +107,7 @@ int main(int argc, char *argv[])
 	stTcpListenEntry[i].iPort = 8081;
 	stTcpListenEntry[i].iName = i;
 	i++;
+	*/
 	strncpy(stTcpListenEntry[i].sIp, "127.0.0.1", sizeof(stTcpListenEntry[i].sIp));
 	stTcpListenEntry[i].iPort = 8080;
 	stTcpListenEntry[i].iName = i;
@@ -106,6 +117,7 @@ int main(int argc, char *argv[])
 	int iUdpNum = UDP_ENTRY_NUM;
 	ListenEntry stUdpListenEntry[UDP_ENTRY_NUM];
 	i = 0;
+	/*
 	strncpy(stUdpListenEntry[i].sIp, "192.168.1.108", sizeof(stUdpListenEntry[i].sIp));
 	stUdpListenEntry[i].iPort = 8080;
 	stUdpListenEntry[i].iName = i;
@@ -114,6 +126,7 @@ int main(int argc, char *argv[])
 	stUdpListenEntry[i].iPort = 8081;
 	stUdpListenEntry[i].iName = i;
 	i++;
+	*/
 	strncpy(stUdpListenEntry[i].sIp, "127.0.0.1", sizeof(stUdpListenEntry[i].sIp));
 	stUdpListenEntry[i].iPort = 8080;
 	stUdpListenEntry[i].iName = i;

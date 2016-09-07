@@ -6,11 +6,11 @@
 
 
 #ifdef __SERVER__
-#define RECVBUF_LEN 1024 * 1024
-#define SENDBUF_LEN 1024 * 1024
+#define RECVBUF_LEN 1024 * 1024 * 2
+#define SENDBUF_LEN 1024 * 1024 * 2
 #else
-#define RECVBUF_LEN 1024 * 1024
-#define SENDBUF_LEN 1024 * 1024
+#define RECVBUF_LEN 1024 * 1024 * 2
+#define SENDBUF_LEN 1024 * 1024 * 2
 #endif
 
 //As client connect to server

@@ -19,12 +19,23 @@ static LogFile stLogFile;
 static int HandlePkgHeadClient(SocketClientDef *pstScd, void *pUserInfo, void *pPkg, int iBytesRecved, int *piPkgLen)
 {
 	LOG("HandlePkgHeadClient");
+
+	Pkg *stPkg = (Pkg *)pPkg;
+	LOG("recv iBytesRecved %d head stx %d ver %d cmd %d len %u", 
+			iBytesRecved, stPkg->cStx, stPkg->stHead.cVer, stPkg->stHead.wCmd, stPkg->stHead.dwLength);
+	
+	*piPkgLen = stPkg->stHead.dwLength;
+
 	return 0;
 }
 
 static int HandlePkgClient(SocketClientDef *pstScd, void *pUserInfo, void *pPkg, int iPkgLen)
 {
 	LOG("HandlePkgClient");
+
+	LOG("iPkgLen %d", iPkgLen);
+	//LOG("dump :\n%s", DumpPackage(pPkg, iPkgLen));
+
 	return 0;
 }
 
@@ -45,13 +56,16 @@ static int HandleConnectClient(SocketClientDef *pstScd, void *pUserInfo)
 	stPkg.cStx = 0x1;
 	stPkg.stHead.cVer = 1;
 	stPkg.stHead.wCmd = 0xef;
+	stPkg.stHead.dwLength = sizeof(Pkg);
 	//stPkg.stHead.dwLength = 1 +sizeof(PkgHead) + 1;
-	stPkg.stHead.dwLength = 1048577;
-	stPkg.sBody[0] = 0x2;
+	//stPkg.stHead.dwLength = 1048577;
+	//stPkg.sBody[0] = 0x2;
+	stPkg.cEtx = 0x2;
 
 	iRet = SendTcpPkg(pstScd, pUserInfo, &stPkg, stPkg.stHead.dwLength);
 
 	//LOG("SendTcpPkg iRet %d dumpPkg:\n%s", iRet, DumpPackage(&stPkg, stPkg.stHead.dwLength));
+	LOG("SendTcpPkg iRet %d ", iRet);
 	
 	return 0;
 }

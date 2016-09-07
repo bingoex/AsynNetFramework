@@ -516,6 +516,7 @@ static int ProcessAccept(SocketContext *pContext, void *pUserInfo)
 	pNewContext->iPkgLen = 0;
 	pNewContext->tLastAccessTime = pNewContext->tCreateTime = time(NULL);
 
+	//new fd allow read
 	if ((iRet = AnfAddFd(pstSrvConfig->pstAnfMng, iSocket, ANF_FLAG_READ | ANF_FLAG_ERROR)) < 0) {
 		LOG("AnfAddFd failed iRet %d iSocket %d", iRet, iSocket);
 		ProcessClose(pNewContext, pNewUserInfo);
@@ -565,7 +566,7 @@ static int ProcessTcpRead(SocketContext *pContext, void *pUserInfo)
 		return -63;
 	}
 
-	LOG("recv iSocket %d iBytesRecved %d newRecv %d total %d", iSocket,
+	LOG("recv iSocket %d iBytesRecved %d newRecv %d total %d", pContext->iSocket,
 			pContext->iBytesRecved, iRet, sizeof(pContext->RecvBuf));
 
 	pContext->iBytesRecved += iRet;
@@ -581,6 +582,7 @@ static int ProcessTcpRead(SocketContext *pContext, void *pUserInfo)
 			if (pContext->iBytesRecved < iReqLen) {
 				LOG("pContext->iBytesRecved(%d) < iReqLen(%d) stat(%d)",
 						pContext->iBytesRecved, iReqLen, pContext->stat);
+				break;//the pkg not enougth
 			}
 
 			//try to get iPkgLen !!!
@@ -726,7 +728,7 @@ static int ProcessTcpWrite(SocketContext*pContext, void *pUserInfo)
 	}
 
 	if (pContext->stat == SOCKET_UNUSED 
-			|| (pContext->stat != SOCKET_TCP_LISTEN && 
+			|| (pContext->stat != SOCKET_TCP_ACCEPT && 
 				pContext->stat != SOCKET_TCP_CONNECTED)) {
 		LOG("error stat %d", pContext->stat);
 		return -92;
@@ -947,7 +949,7 @@ int SendTcpPkg(SocketClientDef *pstScd, void *pUserInfo, void *pPkg, int iPkgLen
 	}
 
 	if (pContext->stat == SOCKET_UNUSED 
-			|| (pContext->stat != SOCKET_TCP_LISTEN && 
+			|| (pContext->stat != SOCKET_TCP_ACCEPT && 
 				pContext->stat != SOCKET_TCP_CONNECTED)) {
 		LOG("error stat %d", pContext->stat);
 		return -2;
@@ -974,7 +976,8 @@ int SendTcpPkg(SocketClientDef *pstScd, void *pUserInfo, void *pPkg, int iPkgLen
 
 	iRet = send(pContext->iSocket, pPkg, iPkgLen, 0);
 
-	LOG("send iRet %d iByteSend %d", iRet, pContext->iBytesSend);
+	//TODO
+	LOG("iPkgLen %d send iRet %d iByteSend %d", iPkgLen, iRet, pContext->iBytesSend);
 
 	//sent parttly
 	if (iRet > 0) {
@@ -985,6 +988,10 @@ int SendTcpPkg(SocketClientDef *pstScd, void *pUserInfo, void *pPkg, int iPkgLen
 
 		memcpy(pContext->SendBuf, (char *)pPkg + iRet, iPkgLen - iRet);
 		pContext->iBytesSend = iPkgLen - iRet;
+
+		//TODO
+		LOG("after iPkgLen %d send iRet %d iByteSend %d", iPkgLen, iRet, pContext->iBytesSend);
+
 		if (AnfModFd(pstSrvConfig->pstAnfMng, pContext->iSocket, 
 					ANF_FLAG_WRITE | ANF_FLAG_READ | ANF_FLAG_ERROR) < 0) {
 			ProcessClose(pContext, pUserInfo);

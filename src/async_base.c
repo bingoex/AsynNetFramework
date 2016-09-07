@@ -196,10 +196,13 @@ static inline void AnfGetSelectFds(AnfMng *pstAnfMng, int iFd, int *piFlag)
 	if (FD_ISSET(iFd, &(pstAnfMng->stWriteTmpFds))) {
 		*piFlag |= ANF_FLAG_WRITE;
 	}
+
 	if (FD_ISSET(iFd, &(pstAnfMng->stExceptTmpFds))) {
 		*piFlag |= ANF_FLAG_ERROR;
 	}
-	LOG("fd %d flag %d", iFd, *piFlag);
+
+	if (*piFlag) 
+		LOG("fd %d flag %d", iFd, *piFlag);
 }
 
 #elif defined(ANF_KQUEUE)
