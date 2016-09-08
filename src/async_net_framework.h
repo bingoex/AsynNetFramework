@@ -33,16 +33,21 @@ typedef enum {
 
 typedef struct {
 	const int iSocket;
-	const struct sockaddr_in stClientAddr;
+	//const struct sockaddr_in stClientAddr;
+	const struct sockaddr stClientAddr;
 	const time_t tCreateTime;
 	const time_t tLastAccessTime;
 	const SocketStat stat;
 } SocketClientDef;
 
+#define PROTO_TCP 1
+#define PROTO_UDP 2
+
 typedef struct {
 	char sServerIp[20];
 	int iServerPort;
 	int iTcpClientId;
+	int iProtoType;
 } ClientDef;
 
 typedef struct {
@@ -55,7 +60,8 @@ typedef struct {
 
 typedef struct {
 	int iSocket;
-	struct sockaddr_in stClientAddr;
+	//struct sockaddr_in stClientAddr;
+	struct sockaddr stClientAddr;
 	time_t tCreateTime;
 	time_t tLastAccessTime;
 	SocketStat stat;
@@ -92,6 +98,7 @@ typedef struct {
 extern "C" {
 #endif 
 
+//UserInfo just for server.
 int AsyncNetFrameworkInit(void *pUserInfoBuf, int iUserInfoBufLen, int iUserInfoLen,
 		LogFile *pstLog, int iLogLevel,
 		ListenEntry *pstTcpListenEntrys, int iTcpNum, int iPkgHeadLenAsSrv, int iMaxAcceptSocketNum,
@@ -103,7 +110,7 @@ int AsyncNetFrameworkLoop();
 
 int SendTcpPkg(SocketClientDef *pstScd, void *pUserInfo, void *pPkg, int iPkgLen);
 
-int SendUdpPkg(SocketClientDef *pstScd, const struct sockaddr_in *pstAddr, 
+int SendUdpPkg(SocketClientDef *pstScd, ListenEntry *pstListenEntry, 
 		void *pUserInfo, void *pPkg, int iPkgLen);
 
 int GetContext(int iSocket, SocketClientDef **ppstScd, void **ppUserInfo);

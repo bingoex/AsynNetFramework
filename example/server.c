@@ -19,8 +19,9 @@ static LogFile stLogFile;
 static int HandlePkgHeadServer(SocketClientDef *pstScd, void *pUserInfo, void *pPkg, int iBytesRecved, int *piPkgLen)
 {
 	LOG("HandlePkgHeadServer");
+
 	Pkg *stPkg = (Pkg *)pPkg;
-	LOG("recv iBytesRecved %d head stx %d ver %d cmd %d len %u", 
+	LOG("recv iBytesRecved %d head:stx %d ver %d cmd %d len %u", 
 			iBytesRecved, stPkg->cStx, stPkg->stHead.cVer, stPkg->stHead.wCmd, stPkg->stHead.dwLength);
 
 	//!!must return piPkgLen
@@ -29,7 +30,6 @@ static int HandlePkgHeadServer(SocketClientDef *pstScd, void *pUserInfo, void *p
 	return 0;
 }
 
-//echo
 static int HandlePkgServer(SocketClientDef *pstScd, void *pUserInfo, void *pPkg, int iPkgLen)
 {
 	LOG("HandlePkgServer");
@@ -65,6 +65,14 @@ static int HandleLoopServer()
 static int HandleUdpPkgServer(SocketClientDef *pstScd, void *pUserInfo, int iUdpName, void *pPkg, int iPkgLen)
 {
 	LOG("HandleUdpPkgServer");
+
+	LOG("iPkgLen %d", iPkgLen);
+	//LOG("dump :\n%s", DumpPackage(pPkg, iPkgLen));
+
+	int iRet = 0;
+	iRet = sendto(pstScd->iSocket, pPkg, iPkgLen, 0, (const struct sockaddr *)&pstScd->stClientAddr, sizeof(struct sockaddr));
+	LOG("sendto %d", iRet);
+
 	return 0;
 }
 
@@ -74,18 +82,20 @@ static int HandleCloseServer(SocketClientDef *pstScd, void *pUserInfo)
 	return 0;
 }
 
+//TODO warning
 static SrvCallBack stServerCallBack = {
 	HandlePkgHead:HandlePkgHeadServer,
 	HandlePkg:HandlePkgServer,
 	HandleAccept:HandleAcceptServer,
 	HandleConnect:HandleConnectServer,
-	//HandleLoop:HandleLoopServer,
+	HandleLoop:HandleLoopServer,
 	HandleUdpPkg:HandleUdpPkgServer,
 	HandleClose:HandleCloseServer
 };
 
 #define TCP_ENTRY_NUM 1
 #define UDP_ENTRY_NUM 1
+
 int main(int argc, char *argv[])
 {
 	int i = 0, iRet = 0;

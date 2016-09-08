@@ -129,12 +129,6 @@ static void SetCallBack(SrvCallBack *pstDst, SrvCallBack *pstSrc)
 	SET_CALLBACK(HandleUdpPkg);
 	SET_CALLBACK(HandleClose);
 
-
-	//TODO
-	//justs for test
-	LOG("test try to call pstDst->HandleLoop");
-	(pstDst->HandleLoop)();
-
 #undef SET_CALLBACK
 }
 
@@ -537,7 +531,7 @@ static int ProcessAccept(SocketContext *pContext, void *pUserInfo)
 static int ProcessTcpRead(SocketContext *pContext, void *pUserInfo)
 {
 	SrvCallBack *pstCallback = &(pstSrvConfig->stCallBack);
-	int iRet = 0, iSocket = 0;
+	int iRet = 0;
 	int iReqLen = 0;
 	int iPkgLen = 0;
 
@@ -919,6 +913,7 @@ int AsyncNetFrameworkLoop()
 				//TODO
 				if (pContext->stat == SOCKET_UDP) {
 					//TODO
+					//impossibie
 					LOG("ANF_FLAG_WRITE SOCKET_UDP");
 
 					ProcessUdpWrite(pContext, pUserInfo);
@@ -1022,38 +1017,64 @@ int SendTcpPkg(SocketClientDef *pstScd, void *pUserInfo, void *pPkg, int iPkgLen
 }
 
 
-int SendUdpPkg(SocketClientDef *pstScd, const struct sockaddr_in *pstAddr, 
+int SendUdpPkg(SocketClientDef *pstScd, ListenEntry *pstListenEntry, 
 		void *pUserInfo, void *pPkg, int iPkgLen)
 {
-	int iRet = 0;
-	SocketContext *pContext = (SocketContext *)pstScd;
-	int iAddrLen = sizeof(struct sockaddr_in);
 
-	if (!pContext) {
-		LOG("SendUdpPkg failed pContext == NULL");
+	int iSocket = 0, iRet = 0;
+	SocketContext *pContext = NULL;
+	struct sockaddr_in *pstAddr = NULL;
+
+	if (pPkg == NULL || iPkgLen <= 0) {
+		LOG("Pkg params erro");
 		return -1;
 	}
 
-	if (pContext->stat == SOCKET_UDP) {
-		LOG("error stat %d", pContext->stat);
+	pstAddr = CreateAddrEx(pstListenEntry->sIp, pstListenEntry->iPort, "udp");
+
+	if (pstAddr == NULL) {
+		LOG("CreateAddrEx error");
 		return -2;
 	}
 
-	if (pPkg == NULL || iPkgLen <= 0 || iPkgLen > sizeof(pContext->SendBuf)) {
-		LOG("Pkg error");
-		return -4;
+	iRet = CreateUdpClientSocketEx(&iSocket, pstListenEntry->sIp, pstListenEntry->iPort, NO_BLOCK);
+
+	if (iRet || iSocket <= 0 ||iSocket > pstSrvConfig->iMaxFdNum) {
+		LOG("CreateUdpClientSocketEx failed iRet(%d) ip %s port %d id %d socket %d", iRet, pstListenEntry->sIp,
+				pstListenEntry->iPort, pstListenEntry->iName, iSocket);
+		return -3;
 	}
 
-	pContext->tLastAccessTime = time(NULL);
+	//TODO
+	LOG("CreateUdpClientSocketEx success iRet(%d) ip %s port %d id %d socket %d", iRet, pstListenEntry->sIp, pstListenEntry->iPort, pstListenEntry->iName, iSocket);
 
-	iRet = sendto(pContext->iSocket, pPkg, iPkgLen, 0, (const struct sockaddr *)pstAddr, iAddrLen);
+	pContext = &((pstSrvConfig->astSocketContext)[iSocket]);
+	pContext->stat = SOCKET_UDP;
+	pContext->iSocket = iSocket;
+	pContext->tCreateTime = pContext->tLastAccessTime = time(NULL);
+	//pContext->iClientIndex = i;// index astClientDef
+	//pstSrvConfig->stCltMng.aiSocket[i] =iSocket;
+	///pstSrvConfig->stCltMng.aStat[i] = pContext->stat;
+	//pstSrvConfig->stCltMng.atLastConnectTime[i] = time(NULL);
+
+	iRet = sendto(pContext->iSocket, pPkg, iPkgLen, 0, (const struct sockaddr *)pstAddr, sizeof(struct sockaddr));
 
 	if (iRet != iPkgLen) {
-		LOG("sento failed %d", iRet);
+		perror("sendto error");
+		LOG("sento failed %d iPkgLen %d ", iRet, iPkgLen);
 		return -7;
 	}
 
 	LOG("sendto sucess ret %d", iRet);
+	if ((iRet = AnfAddFd(pstSrvConfig->pstAnfMng, iSocket, ANF_FLAG_READ | ANF_FLAG_ERROR)) < 0) {
+		LOG("AnfAddFd failed iRet(%d) ip %s port %d id %d iSock %d", iRet,
+				pstListenEntry->sIp, pstListenEntry->iPort, pstListenEntry->iName, iSocket);
+		return -9;
+	}
+
+	//TODO
+	LOG("AnfAddFd success iRet(%d) ip %s port %d id %d iSock %d write %d", 
+			iRet, pstListenEntry->sIp, pstListenEntry->iPort, pstListenEntry->iName, iSocket);
 
 	return 0;
 }
