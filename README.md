@@ -10,6 +10,7 @@ request :client send request to server
 respond :server respond to client 
 
 support tcp udp
+support select epoll
 
 ## example
 
