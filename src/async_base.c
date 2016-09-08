@@ -56,6 +56,14 @@ struct _AnfMng
 	}while(0) \
 
 
+#define LOGTRACE(fmt, args...) \
+	do { \
+		if (pstAnfMng->pstLog) { \
+			Log(pstAnfMng->pstLog, LOG_FORMAT_TYPE_TIME, "[%s][%d]%s() "fmt, \
+					__FILE__, __LINE__, __FUNCTION__, ## args);\
+		} \
+	}while(0) \
+
 AnfMng *AnfInit(LogFile *pstLog, int iLogLevel, int iMaxSocketNum)
 {
 
@@ -66,7 +74,7 @@ AnfMng *AnfInit(LogFile *pstLog, int iLogLevel, int iMaxSocketNum)
 	}
 
 	//TODO
-	LOG("try to AnfInit");
+	LOGTRACE("try to AnfInit");
 
 	memset(pstAnfMng, 0 , sizeof(*pstAnfMng));
 
@@ -74,14 +82,14 @@ AnfMng *AnfInit(LogFile *pstLog, int iLogLevel, int iMaxSocketNum)
 	pstAnfMng->iLogLevel = iLogLevel;
 
 	if (iMaxSocketNum < 0) {
-		printf("error iMaxSocketNum\n");
+		LOG("error iMaxSocketNum");
 		return NULL;
 	}
 
 	pstAnfMng->iMaxSocketNum = iMaxSocketNum;
 
 	//TODO
-	LOG("AnfInit iLogLevel %d iMaxSocketNum %d", iLogLevel, iMaxSocketNum);
+	LOGTRACE("AnfInit iLogLevel %d iMaxSocketNum %d", iLogLevel, iMaxSocketNum);
 
 #if defined(ANF_EPOLL)
 	if ((pstAnfMng->iEpollFd = epoll_create(iMaxSocketNum)) < 0) {
@@ -94,7 +102,7 @@ AnfMng *AnfInit(LogFile *pstLog, int iLogLevel, int iMaxSocketNum)
 		return NULL;
 	}
 
-	LOG("iEpollFd %d evs %p", pstAnfMng->iEpollFd, pstAnfMng->evs);
+	LOGTRACE("iEpollFd %d evs %p", pstAnfMng->iEpollFd, pstAnfMng->evs);
 #elif defined(ANF_SELECT)
 	if (iMaxSocketNum > FD_SETSIZE) {
 		LOG("iMaxSocketNum(%d) > FD_SETSIZE(%d)", iMaxSocketNum, FD_SETSIZE);
@@ -112,7 +120,7 @@ AnfMng *AnfInit(LogFile *pstLog, int iLogLevel, int iMaxSocketNum)
 
 #endif
 
-	LOG("AnfInit pstAnfMng %p success!!!", pstAnfMng);
+	LOGTRACE("AnfInit pstAnfMng %p success!!!", pstAnfMng);
 	return pstAnfMng;
 }
 
@@ -135,7 +143,7 @@ static inline void AnfSetEpollEv(AnfMng *pstAnfMng, struct epoll_event *pev, int
 
 	pev->data.fd = iFd;
 	pev->events = epoll_events;
-	LOG("fd %d event %d", iFd, epoll_events);
+	LOGTRACE("fd %d event %d", iFd, epoll_events);
 }
 
 static inline void AnfGetEpollEv(AnfMng *pstAnfMng, struct epoll_event *pev, int *piFd, int *piFlag)
@@ -157,7 +165,7 @@ static inline void AnfGetEpollEv(AnfMng *pstAnfMng, struct epoll_event *pev, int
 	*piFd = pev->data.fd;
 	*piFlag = iFlag;
 
-	LOG("fd %d event %d", *piFd, *piFlag);
+	LOGTRACE("fd %d event %d", *piFd, *piFlag);
 }
 
 #elif defined(ANF_SELECT)
@@ -182,8 +190,7 @@ static inline void AnfSetSeletFds(AnfMng *pstAnfMng, int iFd, int iFlag)
 		FD_CLR(iFd, &(pstAnfMng->stExceptFds));
 	}
 
-	LOG("fd %d iFlag %d addr %p %p iFlag & ANF_FLAG_WRITE (%d) stWriteFds %llu", 
-			iFd, iFlag, pstAnfMng, &(pstAnfMng->stWriteFds), iFlag & ANF_FLAG_WRITE, pstAnfMng->stWriteFds);
+	LOGTRACE("fd %d iFlag %d", iFd, iFlag);
 }
 
 static inline void AnfGetSelectFds(AnfMng *pstAnfMng, int iFd, int *piFlag)
@@ -202,19 +209,19 @@ static inline void AnfGetSelectFds(AnfMng *pstAnfMng, int iFd, int *piFlag)
 	}
 
 	if (*piFlag) 
-		LOG("fd %d flag %d", iFd, *piFlag);
+		LOGTRACE("fd %d flag %d", iFd, *piFlag);
 }
 
 #elif defined(ANF_KQUEUE)
 
 static inline void AnfSetKqueueEv(AnfMng *pstAnfMng, int iFd, int iFlag)
 {
-	LOG("fd %d Flag %d", iFd, iFlag);
+	LOGTRACE("fd %d Flag %d", iFd, iFlag);
 }
 
 static inline void AnfGetKqueueEv(AnfMng *pstAnfMng, int *piFd, int *piFlag)
 {
-	LOG("fd %d Flag %d", *piFd, *piFlag);
+	LOGTRACE("fd %d Flag %d", *piFd, *piFlag);
 }
 #endif
 
@@ -234,13 +241,13 @@ int AnfAddFd(AnfMng *pstAnfMng, int iFd, int iFlag)
 			LOG("epoll_ctl EPOLL_CTL_MOD failed");
 			return -2;
 		} else {
-			LOG("warning: epoll_ctr add failed but mod success");
+			LOGTRACE("warning: epoll_ctr add failed but mod success");
 		}
 	}
 
 #elif defined(ANF_SELECT)
 	AnfSetSeletFds(pstAnfMng, iFd, iFlag);
-	LOG("after addr %p %p", pstAnfMng, &(pstAnfMng->stWriteFds));
+	LOGTRACE("after addr %p %p", pstAnfMng, &(pstAnfMng->stWriteFds));
 #elif defined(ANF_KQUEUE)
 
 #endif
