@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <memory.h>
 #include <errno.h>
+#include <fcntl.h> //F_GETFL O_NONBLOCK O_NDELAY F_SETFL
 #include "async_net_framework.h"
 
 #define MAX_TCP_PORT 10
