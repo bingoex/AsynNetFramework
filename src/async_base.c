@@ -1,14 +1,12 @@
-#include <stdio.h>
-#include <memory.h>
-#include <stdlib.h>
-#include <string.h>
+#include <stdlib.h> // malloc
+#include <string.h> // memset
 #include <errno.h>
 
 
 #include "async_base.h"
 
 
-#define ANF_SELECT
+#define ANF_SELECT // 使用select做多路复用
 //#define ANF_EPOLL
 //#define ANF_KQUEUE
 
@@ -31,7 +29,7 @@ struct _AnfMng
 	int iIsTriggered;
 
 #if defined(ANF_EPOLL)
-	int iEpollFd;
+	int iEpollFd; //多路复用fd
 	struct epoll_event *evs;
 #elif defined(ANF_SELECT)
 	fd_set stReadFds;
@@ -43,7 +41,7 @@ struct _AnfMng
 	fd_set stExceptTmpFds;
 
 #elif defined(ANF_KQUEUE)
-
+    // 暂未实现
 #endif
 };
 
@@ -64,6 +62,13 @@ struct _AnfMng
 		} \
 	}while(0) \
 
+/*
+ * 初始化异步io管理器
+ * 参数说明：
+ *      pstLog：日志结构
+ *      iLogLevel：日志级别
+ *      iMaxSocketNum：最大操作fd数
+ */
 AnfMng *AnfInit(LogFile *pstLog, int iLogLevel, int iMaxSocketNum)
 {
 
@@ -317,6 +322,7 @@ int AnfWaitForFd(AnfMng *pstAnfMng, int iTimeoutMSec)
 	if (iTimeoutMSec < 0) {
 		iTimeoutMSec = -1;
 	}
+
 	iIsTriggered = epoll_wait(pstAnfMng->iEpollFd, pstAnfMng->evs, pstAnfMng->iMaxSocketNum, iTimeoutMSec);
 #elif defined(ANF_SELECT)
 	struct timeval tv, *ptv = &tv;

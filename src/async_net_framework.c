@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <memory.h>
 #include <errno.h>
-#include <fcntl.h> //F_GETFL O_NONBLOCK O_NDELAY F_SETFL
 #include "async_net_framework.h"
 
+// 最多监听端口数
 #define MAX_TCP_PORT 10
 #define MAX_UDP_PORT 10
 
@@ -13,17 +13,21 @@ typedef struct {
 	int iLogLevel;
 
 	int iTimeoutMSec; //ms 
-	int iPkgHeadLenAsSrv;
+	int iPkgHeadLenAsSrv; // 服务器收包包头长度
 	int iPkgHeadLenAsClt;
-	int iUserInfoLen; //TODO
+
+    /* 用户session */
+	int iUserInfoLen; //TODO 暂未用到
 	void *aUserInfo; //TODO
 
 	
+    /* tcp监听相关 */
 	int iTcpNum;
 	ListenEntry stTcpListenEntrys[MAX_TCP_PORT];
 	//struct in_addr stTcpListenAddr;
 	//unsigned short ushTcpPort[MAX_TCP_PORT];
 
+    /* udp监听相关 */
 	int iUdpNum;
 	ListenEntry stUdpListenEntrys[MAX_UDP_PORT];
 	//struct in_addr stUdpListenAddr;
@@ -31,6 +35,7 @@ typedef struct {
 	//int aiUdpName[MAX_UDP_PORT];
 	int aiUdpSocket[MAX_UDP_PORT]; // index iUdpNum
 
+    /* 以客户端身份发包相关*/
 	ClientDefMng stCltMng;
 
 	AnfMng *pstAnfMng;
@@ -65,6 +70,7 @@ SrvConfig *pstSrvConfig = &stSrvConfig;
 		} \
 	}while(0) \
 
+/* 默认回调函数实现 */
 static int HandlePkgHeadDefault(SocketClientDef *pstScd, void *pUserInfo, void *pPkg, int iBytesRecved, int *piPkgLen)
 {
 	LOG("HandlePkgHeadDefalut");
@@ -162,7 +168,36 @@ static void SetLimit(SrvConfig *pstSrvConfig)
 	return;
 }
 
-int AsyncNetFrameworkInit (void *pUserInfoBuf, int iUserInfoBufLen, int iUserInfoLen,
+/*
+ * 初始化框架
+ *      1、参数检查
+ *      2、初始化监听结构体
+ *      3、初始化客户端结构体
+ *      4、初始化回调函数
+ *      5、初始化资源大小
+ * 参数说明：
+ *      pUserInfoBuf：用户session存储地址，如果为NULL则框架负责new
+ *      iUserInfoBufLen：用户session总大小
+ *      iUserInfoLen：单用户session大小
+ *
+ *      pstLog：框架日志结构
+ *      iLogLevel：框架日志级别
+ *
+ *      pstTcpListenEntrys：tcp监听结构体(ip\端口区分)
+ *      iTcpNum：tcp监听个数
+ *      iPkgHeadLenAsSrv：每个请求包的包头大小（目前框架只支持固定大小包头）
+ *      iMaxAcceptSocketNum：最大Accept请求数
+ *
+ *      pstUdpListenEntrys：udp监听结构体
+ *      iUdpNum：udp监听个数
+ *
+ *      pstClientDefs：框架作为客户端发包结构体
+ *      iClientNum：作为client的个数
+ *      iPkgHeadLenAsClt：发包包头长度
+ *
+ *      pstCallBack：回调函数
+ */
+int AsyncNetFrameworkInit(void *pUserInfoBuf, int iUserInfoBufLen, int iUserInfoLen,
 		LogFile *pstLog, int iLogLevel,
 		ListenEntry *pstTcpListenEntrys, int iTcpNum, int iPkgHeadLenAsSrv, int iMaxAcceptSocketNum,
 		ListenEntry *pstUdpListenEntrys, int iUdpNum,
@@ -274,6 +309,7 @@ int AsyncNetFrameworkInit (void *pUserInfoBuf, int iUserInfoBufLen, int iUserInf
 				pstClientDefs[i].sServerIp, pstClientDefs[i].iServerPort, pstClientDefs[i].iTcpClientId);
 	}
 
+    /* 设置回调函数 */
 	SetCallBack(&(pstSrvConfig->stCallBack), pstCallBack);
 
 	SetLimit(pstSrvConfig);
@@ -799,13 +835,17 @@ static int ProcessUdpWrite(SocketContext*pContext, void *pUserInfo)
 	return 0;
 }
 
+/*
+ * 启动框架
+ *      1、初始化AnfInit结构
+ *      2、监听端口，并加入多路复用
+ *      3、初始化客户端发包结构，并加入多路复用
+ *      4、wait收发包多路复用fd
+ *      5、调用相应回调函数
+ */
 int AsyncNetFrameworkLoop()
 {
-	//TODO
-	LOGTRACE("begin AsyncNetFrameworkLoop");
-
 	int i = 0, iRet = 0;
-
 	pstSrvConfig->astSocketContext = (SocketContext *)malloc(sizeof(*(pstSrvConfig->astSocketContext)) * pstSrvConfig->iMaxFdNum);
 	if (!(pstSrvConfig->astSocketContext)) {
 		perror("astSocketContext malloc failed");
